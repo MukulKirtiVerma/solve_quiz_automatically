@@ -1,0 +1,100 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Khan Academy Auto-Play 2x</title>
+<style>
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    width: 230px;
+    padding: 14px;
+    margin: 0;
+  }
+  h1 {
+    font-size: 14px;
+    margin: 0 0 12px;
+  }
+  .row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  select {
+    padding: 4px 6px;
+    font-size: 13px;
+  }
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 38px;
+    height: 21px;
+    flex-shrink: 0;
+  }
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background: #ccc;
+    transition: .15s;
+    border-radius: 22px;
+  }
+  .slider:before {
+    content: "";
+    position: absolute;
+    height: 15px;
+    width: 15px;
+    left: 3px;
+    bottom: 3px;
+    background: white;
+    transition: .15s;
+    border-radius: 50%;
+  }
+  input:checked + .slider {
+    background: #22c55e;
+  }
+  input:checked + .slider:before {
+    transform: translateX(17px);
+  }
+  p.hint {
+    font-size: 11px;
+    color: #666;
+    margin: 8px 0 0;
+    line-height: 1.4;
+  }
+</style>
+</head>
+<body>
+  <h1>Khan Academy Auto-Play</h1>
+  <div class="row">
+    <span>Enabled</span>
+    <label class="switch">
+      <input type="checkbox" id="enabled">
+      <span class="slider"></span>
+    </label>
+  </div>
+  <div class="row">
+    <span>Speed</span>
+    <select id="speed">
+      <option value="1">1x</option>
+      <option value="1.25">1.25x</option>
+      <option value="1.5">1.5x</option>
+      <option value="1.75">1.75x</option>
+      <option value="2">2x</option>
+      <option value="2.5">2.5x</option>
+      <option value="3">3x</option>
+    </select>
+  </div>
+  <p class="hint">
+    Auto-clicks each video's play button, sets the chosen speed, and clicks
+    "Up next" when a video ends — so the whole lesson list plays through on
+    its own. A matching on/off badge also sits in the corner of the page.
+  </p>
+  <script src="popup.js"></script>
+</body>
+</html>

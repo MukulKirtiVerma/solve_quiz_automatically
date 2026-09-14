@@ -1,0 +1,39 @@
+{
+  "manifest_version": 3,
+  "name": "Khan Academy Auto-Play 2x",
+  "version": "1.0.0",
+  "description": "Automatically plays each Khan Academy video and advances through the lesson playlist at 2x (or your chosen) speed, for seamless hands-free watching.",
+  "permissions": ["storage"],
+  "host_permissions": [
+    "*://*.khanacademy.org/*",
+    "*://*.youtube.com/*",
+    "*://*.youtube-nocookie.com/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["*://*.khanacademy.org/*"],
+      "js": ["content-ka.js"],
+      "run_at": "document_idle",
+      "all_frames": false
+    },
+    {
+      "matches": ["*://*.youtube.com/*", "*://*.youtube-nocookie.com/*"],
+      "js": ["content-yt.js"],
+      "run_at": "document_idle",
+      "all_frames": true
+    }
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  }
+}
