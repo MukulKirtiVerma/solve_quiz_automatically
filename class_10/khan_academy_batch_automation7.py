@@ -76,7 +76,7 @@ from PIL import Image
 # CONFIGURATION
 # ============================================================
 
-CSV_FILE = "unique_student_records.csv"
+CSV_FILE = "/Users/mukulkirtiverma/PycharmProjects/solve_quiz_automatically/class_10/data/unique_student_records.csv"
 BATCH_SIZE = 1
 LOGIN_URL = "https://en.khanacademy.org/login"
 
