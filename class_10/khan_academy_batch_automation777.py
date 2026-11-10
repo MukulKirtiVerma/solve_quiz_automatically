@@ -76,16 +76,20 @@ from PIL import Image
 # CONFIGURATION
 # ============================================================
 
-CSV_FILE = "unique_student_records2.csv"
+CSV_FILE = "/Users/mukulkirtiverma/PycharmProjects/solve_quiz_automatically/class_10/data/unique_student_records1.csv"
 BATCH_SIZE = 1
 LOGIN_URL = "https://en.khanacademy.org/login"
 
 # Quiz URLs
 QUIZ_URLS = [
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:chemical-reactions-and-equations/x5d08d26681869997:combination-and-decomposition-reactions/quiz/x5d08d26681869997:chemical-reactions-and-equations-quiz-2",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:chemical-reactions-and-equations/x5d08d26681869997:displacement-and-double-displacement-reactions/quiz/x5d08d26681869997:chemical-reactions-and-equations-quiz-3",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:chemical-reactions-and-equations/x5d08d26681869997:corrosion-and-rancidity/quiz/x5d08d26681869997:chemical-reactions-and-equations-quiz-4",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:chemical-reactions-and-equations/x5d08d26681869997:corrosion-and-rancidity/test/x5d08d26681869997:chemical-reactions-and-equations-unit-test"
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:chemical-properties-of-acids-and-bases/quiz/x5d08d26681869997:acids-bases-and-salts-quiz-1",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:reaction-of-acids-and-bases/quiz/x5d08d26681869997:acids-bases-and-salts-quiz-2",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:salts-and-chemicals-from-common-salt/quiz/x5d08d26681869997:acids-bases-and-salts-quiz-4",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:salts-and-chemicals-from-common-salt/test/x5d08d26681869997:acids-bases-and-salts-unit-test",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:reactivity-series/quiz/x5d08d26681869997:metals-and-non-metals-quiz-1",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:metals-reaction-with-non-metals/quiz/x5d08d26681869997:metals-and-non-metals-quiz-2",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:corrosion/quiz/x5d08d26681869997:metals-and-non-metals-quiz-3",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:occurrence-of-metals/test/x5d08d26681869997:metals-and-non-metals-unit-test"
 ]
 
 OUTPUT_DIR = "ka_quiz_progress"
@@ -1450,7 +1454,7 @@ def main():
     failed_count = len(checkpoint["failed_students"])
     print(f"📊 Checkpoint: {processed_count} processed, {failed_count} failed")
     students = [i for i in students if i['username'] not in checkpoint['processed_students']]
-    print("student need to process", len(students))
+    print("student need to process================================", len(students))
 
     if not students:
         print("❌ No valid students found")
