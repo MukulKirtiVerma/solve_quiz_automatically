@@ -7,6 +7,10 @@ Features:
 - Includes examples and rules for balancing equations
 - Handles multiple choice and single choice questions
 - Provides detailed reasoning for answers
+- Skips quizzes Khan Academy already shows as more than 80% complete
+- Per-CSV checkpoint (student -> quiz), so several instances can run on
+  different CSVs at the same time:
+      python khan_academy_batch_automation777777.py data/unique_student_records3.csv
 """
 
 import csv
@@ -15,6 +19,8 @@ import os
 import sys
 import shutil
 import json
+import hashlib
+from urllib.parse import unquote, urlparse
 import base64
 import mimetypes
 import requests
@@ -76,24 +82,67 @@ from PIL import Image
 # CONFIGURATION
 # ============================================================
 
-CSV_FILE = "/Users/mukulkirtiverma/PycharmProjects/solve_quiz_automatically/class_10/data/unique_student_records3.csv"
+DEFAULT_CSV_FILE = "/Users/mukulkirtiverma/PycharmProjects/solve_quiz_automatically/class_10/data/unique_student_records_all.csv"
+# Optional first CLI argument overrides the CSV, so one script can run per CSV in parallel.
+CSV_FILE = os.path.abspath(sys.argv[1] if len(sys.argv) > 1 else DEFAULT_CSV_FILE)
 BATCH_SIZE = 1
+
+# Skip a quiz when Khan Academy already shows it as more than this % complete.
+SKIP_QUIZ_IF_COMPLETION_ABOVE = 80
+# Sidebar status span, e.g. <span class="_1vh6t21p">Mastered • 100%</span>.
+# Khan Academy's class names are generated, so the link text is used as a fallback.
+COMPLETION_STATUS_CLASS = "_1vh6t21p"
 LOGIN_URL = "https://en.khanacademy.org/login"
 
 # Quiz URLs
 QUIZ_URLS = [
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:reaction-of-acids-and-bases/e/identifying-the-gas-released",
     "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:chemical-properties-of-acids-and-bases/quiz/x5d08d26681869997:acids-bases-and-salts-quiz-1",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:reaction-of-acids-and-bases/e/detection-of-gases",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:reaction-of-acids-and-bases/e/identify-the-salt-formed",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:reaction-of-acids-and-bases/e/reactions-of-acids-and-bases",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:reaction-of-acids-and-bases/e/metal-oxide-and-non-metal-oxide",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:reaction-of-acids-and-bases/e/overview-reactions-of-acids-and-bases",
     "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:reaction-of-acids-and-bases/quiz/x5d08d26681869997:acids-bases-and-salts-quiz-2",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:common-features-of-acid-and-base/e/common-properties-of-acids-and-bases-importance-of-ph",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:strength-of-acid-and-base/e/electrolytes-and-non-electrolytes",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:strength-of-acid-and-base/e/acids-and-bases",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:strength-of-acid-and-base/e/effect-of-dilution-of-acids-and-bases",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:strength-of-acid-and-base/e/ph-and-strength",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:strength-of-acid-and-base/e/ph-and-ph-scale",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:strength-of-acid-and-base/e/ph--concentration",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:salts-and-chemicals-from-common-salt/e/the-ph-of-salts",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:salts-and-chemicals-from-common-salt/e/more-about-salts",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:salts-and-chemicals-from-common-salt/e/water-of-crystallization",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:salts-and-chemicals-from-common-salt/e/uses-of-common-salts",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:salts-and-chemicals-from-common-salt/e/more-about-salts-water-of-crystallisation-uses-of-chemicals",
     "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:salts-and-chemicals-from-common-salt/quiz/x5d08d26681869997:acids-bases-and-salts-quiz-4",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:salts-and-chemicals-from-common-salt/test/x5d08d26681869997:acids-bases-and-salts-unit-test",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:reactivity-series/quiz/x5d08d26681869997:metals-and-non-metals-quiz-1",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:metals-reaction-with-non-metals/quiz/x5d08d26681869997:metals-and-non-metals-quiz-2",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:corrosion/quiz/x5d08d26681869997:metals-and-non-metals-quiz-3",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:occurrence-of-metals/test/x5d08d26681869997:metals-and-non-metals-unit-test"
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:salts-and-chemicals-from-common-salt/test/x5d08d26681869997:acids-bases-and-salts-unit-test"
 ]
 
-OUTPUT_DIR = "ka_quiz_progress"
+
+def make_csv_id(csv_path):
+    """Stable id for a CSV: '<file stem>_<hash of its absolute path>'."""
+    abs_path = os.path.abspath(csv_path)
+    stem = re.sub(r"[^A-Za-z0-9_-]", "_", Path(abs_path).stem)
+    digest = hashlib.sha1(abs_path.encode("utf-8")).hexdigest()[:8]
+    return f"{stem}_{digest}"
+
+
+def quiz_id_from_url(url):
+    """'.../quiz/x5d08d26681869997:acids-bases-and-salts-quiz-1' -> 'acids-bases-and-salts-quiz-1'"""
+    path = unquote(urlparse(url).path).rstrip("/")
+    return path.rsplit("/", 1)[-1].rsplit(":", 1)[-1].lower()
+
+
+CSV_ID = make_csv_id(CSV_FILE)
+
+# Everything an instance writes lives under its own CSV folder, so parallel
+# instances working on different CSVs never share files.
+OUTPUT_ROOT = "ka_quiz_progress"
+OUTPUT_DIR = os.path.join(OUTPUT_ROOT, CSV_ID)
 CHECKPOINT_FILE = os.path.join(OUTPUT_DIR, "checkpoint.json")
+LEGACY_CHECKPOINT_FILE = os.path.join(OUTPUT_ROOT, "checkpoint.json")  # old shared format
 STUDENT_TIMEOUT = 600  # 10 minutes per student
 
 # NVIDIA API Configuration
@@ -107,7 +156,7 @@ STREAM = False
 # ============================================================
 
 def setup_output():
-    Path(OUTPUT_DIR).mkdir(exist_ok=True)
+    Path(OUTPUT_DIR).mkdir(parents=True, exist_ok=True)
 
     screenshot_dir = Path(OUTPUT_DIR, "screenshots")
     screenshot_dir.mkdir(parents=True, exist_ok=True)
@@ -126,10 +175,6 @@ def setup_output():
                 "notes",
             ])
 
-    if not os.path.exists(CHECKPOINT_FILE):
-        with open(CHECKPOINT_FILE, "w", encoding="utf-8") as f:
-            json.dump({"processed_students": [], "failed_students": []}, f, indent=2)
-
     return str(screenshot_dir), str(progress_file)
 
 
@@ -140,41 +185,140 @@ SCREENSHOT_DIR, PROGRESS_FILE = setup_output()
 # CHECKPOINT MANAGEMENT
 # ============================================================
 
+# Layout of ka_quiz_progress/<CSV_ID>/checkpoint.json:
+# {
+#   "csv_id": "...", "csv_file": "/abs/path.csv", "updated_at": "...",
+#   "students": {
+#     "<username>": {
+#       "status": "processed" | "failed", "error": "", "updated_at": "...",
+#       "quizzes": {
+#         "<quiz_id>": {"status": "complete" | "skipped" | "incomplete",
+#                       "completion_at_start": 85, "url": "...", "updated_at": "..."}
+#       }
+#     }
+#   }
+# }
+
+STUDENT_PROCESSED = "processed"
+STUDENT_FAILED = "failed"
+
+QUIZ_COMPLETE = "complete"
+QUIZ_SKIPPED = "skipped"  # already above SKIP_QUIZ_IF_COMPLETION_ABOVE on Khan Academy
+QUIZ_INCOMPLETE = "incomplete"
+QUIZ_DONE_STATUSES = (QUIZ_COMPLETE, QUIZ_SKIPPED)
+
+
+def _now():
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
+def _new_checkpoint():
+    return {"csv_id": CSV_ID, "csv_file": CSV_FILE, "students": {}}
+
+
+def save_checkpoint(checkpoint):
+    checkpoint["updated_at"] = _now()
+    tmp_file = f"{CHECKPOINT_FILE}.tmp"
+    with open(tmp_file, "w", encoding="utf-8") as f:
+        json.dump(checkpoint, f, indent=2)
+    # Atomic swap: a crash/timeout mid-write can never leave a truncated checkpoint.
+    os.replace(tmp_file, CHECKPOINT_FILE)
+
+
 def load_checkpoint():
     try:
         with open(CHECKPOINT_FILE, "r", encoding="utf-8") as f:
-            return json.load(f)
-    except (FileNotFoundError, json.JSONDecodeError):
-        return {"processed_students": [], "failed_students": []}
+            checkpoint = json.load(f)
+    except FileNotFoundError:
+        return _new_checkpoint()
+    except json.JSONDecodeError:
+        backup = f"{CHECKPOINT_FILE}.corrupt_{datetime.now():%Y%m%d_%H%M%S}"
+        shutil.copy(CHECKPOINT_FILE, backup)
+        print(f"⚠️ Checkpoint unreadable, starting a fresh one (old file kept at {backup})")
+        checkpoint = _new_checkpoint()
+        save_checkpoint(checkpoint)
+        return checkpoint
+
+    checkpoint.setdefault("students", {})
+    return checkpoint
 
 
-def save_checkpoint(processed_students, failed_students):
-    with open(CHECKPOINT_FILE, "w", encoding="utf-8") as f:
-        json.dump({
-            "processed_students": processed_students,
-            "failed_students": failed_students
-        }, f, indent=2)
+def _student_entry(checkpoint, username):
+    return checkpoint["students"].setdefault(username, {"status": "", "quizzes": {}})
+
+
+def usernames_with_status(checkpoint, status):
+    return [
+        username
+        for username, student in checkpoint["students"].items()
+        if student.get("status") == status
+    ]
 
 
 def is_student_processed(username):
-    checkpoint = load_checkpoint()
-    return username in checkpoint["processed_students"]
+    student = load_checkpoint()["students"].get(username, {})
+    return student.get("status") == STUDENT_PROCESSED
 
 
 def mark_student_processed(username):
     checkpoint = load_checkpoint()
-    if username not in checkpoint["processed_students"]:
-        checkpoint["processed_students"].append(username)
-    if username in checkpoint["failed_students"]:
-        checkpoint["failed_students"].remove(username)
-    save_checkpoint(checkpoint["processed_students"], checkpoint["failed_students"])
+    _student_entry(checkpoint, username).update(
+        status=STUDENT_PROCESSED, error="", updated_at=_now()
+    )
+    save_checkpoint(checkpoint)
 
 
 def mark_student_failed(username, error_message=""):
     checkpoint = load_checkpoint()
-    if username not in checkpoint["failed_students"]:
-        checkpoint["failed_students"].append(username)
-    save_checkpoint(checkpoint["processed_students"], checkpoint["failed_students"])
+    _student_entry(checkpoint, username).update(
+        status=STUDENT_FAILED, error=error_message, updated_at=_now()
+    )
+    save_checkpoint(checkpoint)
+
+
+def get_quiz_checkpoint(username, quiz_id):
+    student = load_checkpoint()["students"].get(username, {})
+    return student.get("quizzes", {}).get(quiz_id)
+
+
+def mark_quiz(username, url, status, completion_at_start):
+    checkpoint = load_checkpoint()
+    student = _student_entry(checkpoint, username)
+    student.setdefault("quizzes", {})[quiz_id_from_url(url)] = {
+        "status": status,
+        "completion_at_start": completion_at_start,
+        "url": url,
+        "updated_at": _now(),
+    }
+    save_checkpoint(checkpoint)
+
+
+def import_legacy_checkpoint(students):
+    """
+    Create this CSV's checkpoint, carrying over students the old shared
+    ka_quiz_progress/checkpoint.json already marked as processed.
+    Only usernames that are in this CSV are imported.
+    """
+    try:
+        with open(LEGACY_CHECKPOINT_FILE, "r", encoding="utf-8") as f:
+            legacy_processed = set(json.load(f).get("processed_students", []))
+    except (FileNotFoundError, json.JSONDecodeError):
+        legacy_processed = set()
+
+    checkpoint = _new_checkpoint()
+    for student in students:
+        if student["username"] in legacy_processed:
+            _student_entry(checkpoint, student["username"]).update(
+                status=STUDENT_PROCESSED,
+                error="",
+                updated_at=_now(),
+                note="imported from legacy checkpoint.json",
+            )
+    save_checkpoint(checkpoint)
+
+    imported = len(checkpoint["students"])
+    if imported:
+        print(f"📥 Imported {imported} processed student(s) from {LEGACY_CHECKPOINT_FILE}")
 
 
 # ============================================================
@@ -881,21 +1025,112 @@ def get_content_panel_html(driver):
 
 
 # ============================================================
+# QUIZ COMPLETION DETECTION
+# ============================================================
+
+# Finds every link on the page whose URL slug equals the current quiz's slug and
+# returns its status text. The sidebar shows the same status span for *every*
+# item in the lesson, so matching on the slug is what ties a % to this quiz.
+_QUIZ_LINK_STATUS_JS = """
+const [quizId, statusClass] = arguments;
+const slugOf = (href) => {
+    try {
+        const path = decodeURIComponent(new URL(href, location.href).pathname).replace(/\\/+$/, "");
+        return path.split("/").pop().split(":").pop().toLowerCase();
+    } catch (e) {
+        return "";
+    }
+};
+// Join text nodes with a separator: textContent would glue "Quiz 2" + "85%" into "Quiz 285%".
+const textOf = (el) => {
+    const parts = [];
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    while (walker.nextNode()) {
+        const t = walker.currentNode.nodeValue.trim();
+        if (t) parts.push(t);
+    }
+    return parts.join(" | ");
+};
+const links = [];
+for (const a of document.querySelectorAll("a[href]")) {
+    if (slugOf(a.getAttribute("href")) !== quizId) continue;
+    const status = a.querySelector("span." + statusClass);
+    const ariaCurrent = a.getAttribute("aria-current");
+    links.push({
+        current: !!ariaCurrent && ariaCurrent !== "false",
+        status: status ? textOf(status) : "",
+        text: textOf(a),
+    });
+}
+return links;
+"""
+
+
+def _parse_completion(text):
+    """'Mastered • 100%' -> 100, 'Mastered' -> 100, '' -> None."""
+    text = text or ""
+    for match in re.finditer(r"(?<![\d.])(\d{1,3})\s*%", text):
+        percent = int(match.group(1))
+        if percent <= 100:
+            return percent
+    if "mastered" in text.lower():
+        return 100
+    return None
+
+
+def get_quiz_completion(driver, url, wait_seconds=3):
+    """
+    Completion % that the course sidebar shows for the quiz at `url`.
+    Returns 0 when it cannot be detected.
+    """
+    quiz_id = quiz_id_from_url(url)
+    try:
+        links = WebDriverWait(driver, wait_seconds).until(
+            lambda d: d.execute_script(_QUIZ_LINK_STATUS_JS, quiz_id, COMPLETION_STATUS_CLASS)
+        )
+    except WebDriverException:
+        print(f"    ℹ️ No sidebar link found for '{quiz_id}', treating completion as 0%")
+        return 0
+
+    # The highlighted (aria-current) sidebar entry is the most reliable one.
+    links.sort(key=lambda link: not link.get("current"))
+    for link in links:
+        for text in (link.get("status"), link.get("text")):
+            completion = _parse_completion(text)
+            if completion is not None:
+                return completion
+
+    print(f"    ℹ️ No completion status shown for '{quiz_id}', treating completion as 0%")
+    return 0
+
+
+# ============================================================
 # PROCESS A SINGLE URL
 # ============================================================
 
 def process_url(driver, username, url, student_name):
-    """Process a single quiz URL using API."""
+    """
+    Process a single quiz URL using API.
+    Returns (status, completion_at_start) where status is QUIZ_COMPLETE,
+    QUIZ_SKIPPED or QUIZ_INCOMPLETE.
+    """
     print(f"\n    🌐 Processing URL: {url}")
 
     driver.get(url)
     time.sleep(5)
 
+    completion = get_quiz_completion(driver, url)
+    print(f"    📊 Current completion: {completion}%")
+    if completion > SKIP_QUIZ_IF_COMPLETION_ABOVE:
+        print(f"    ⏭️ Skipping quiz, already above {SKIP_QUIZ_IF_COMPLETION_ABOVE}%")
+        log_progress(student_name, username, url, "QUIZ_SKIPPED", f"Already {completion}% complete")
+        return QUIZ_SKIPPED, completion
+
     if is_summary_present(driver):
         print("    ✅ Quiz already completed (Show summary found)")
         click_show_summary(driver)
         log_progress(student_name, username, url, "QUIZ_COMPLETE", "Quiz already completed")
-        return True
+        return QUIZ_COMPLETE, completion
 
     click_lets_go(driver)
     time.sleep(2)
@@ -914,7 +1149,7 @@ def process_url(driver, username, url, student_name):
             print("    ✅ Quiz completed! (Show summary found)")
             click_show_summary(driver)
             log_progress(student_name, username, url, "QUIZ_COMPLETE", "All questions solved")
-            return True
+            return QUIZ_COMPLETE, completion
 
         try:
             next_buttons = driver.find_elements(By.CSS_SELECTOR, 'button[data-testid="exercise-next-question"]')
@@ -924,7 +1159,7 @@ def process_url(driver, username, url, student_name):
                     print("    ✅ All questions completed! (Next button disabled)")
                     if is_summary_present(driver):
                         click_show_summary(driver)
-                    return True
+                    return QUIZ_COMPLETE, completion
         except:
             pass
 
@@ -952,7 +1187,7 @@ def process_url(driver, username, url, student_name):
                             print(f"    ✅ API solution applied successfully (action: {action_result})")
                             api_success = True
                             if action_result == 'summary':
-                                return True
+                                return QUIZ_COMPLETE, completion
                             break
                         elif action_result == 'wrong':
                             if wrong_answer:
@@ -975,7 +1210,7 @@ def process_url(driver, username, url, student_name):
                             if action_result in ['next', 'summary']:
                                 print(f"    ✅ API solution applied on retry (action: {action_result})")
                                 if action_result == 'summary':
-                                    return True
+                                    return QUIZ_COMPLETE, completion
                                 break
                             elif action_result == 'wrong':
                                 if wrong_answer:
@@ -994,10 +1229,10 @@ def process_url(driver, username, url, student_name):
         print("    ✅ Quiz completed (Show summary found at end)")
         click_show_summary(driver)
         log_progress(student_name, username, url, "QUIZ_COMPLETE", "Quiz completed")
-        return True
+        return QUIZ_COMPLETE, completion
 
     log_progress(student_name, username, url, "INCOMPLETE", f"Could not complete after {max_questions} questions")
-    return False
+    return QUIZ_INCOMPLETE, completion
 
 
 # ============================================================
@@ -1258,9 +1493,11 @@ def process_student_with_timeout(student, batch_number, student_number):
     print(f"📧 USERNAME: {username}")
     print("━" * 70)
 
+    # Unique per CSV + student: parallel instances must never share (or delete)
+    # each other's Chrome profile directory.
     profile_dir = os.path.join(
         os.getcwd(),
-        f"chrome_profile_batch_{batch_number}_student_{student_number}"
+        f"chrome_profile_{CSV_ID}_{safe_filename(username)}"
     )
 
     driver = None
@@ -1282,16 +1519,24 @@ def process_student_with_timeout(student, batch_number, student_number):
 
         all_completed = True
         for url in QUIZ_URLS:
+            quiz_id = quiz_id_from_url(url)
             print(f"\n{'=' * 60}")
-            print(f"📚 STARTING QUIZ: {url.split('/')[-2]}")
+            print(f"📚 STARTING QUIZ: {quiz_id}")
             print(f"{'=' * 60}")
 
-            quiz_completed = process_url(driver, username, url, name)
-            if not quiz_completed:
+            previous = get_quiz_checkpoint(username, quiz_id)
+            if previous and previous.get("status") in QUIZ_DONE_STATUSES:
+                print(f"    ⏭️ Already {previous['status']} in checkpoint, skipping: {quiz_id}")
+                continue
+
+            quiz_status, completion_at_start = process_url(driver, username, url, name)
+            mark_quiz(username, url, quiz_status, completion_at_start)
+
+            if quiz_status == QUIZ_INCOMPLETE:
                 all_completed = False
                 print(f"    ⚠️ Quiz not completed: {url}")
             else:
-                print(f"    ✅ Quiz completed: {url}")
+                print(f"    ✅ Quiz {quiz_status}: {url}")
 
             time.sleep(2)
 
@@ -1447,13 +1692,18 @@ def main():
     students = read_students(CSV_FILE)
 
     print()
-    print(f"📋 Loaded {len(students)} student(s) from CSV")
+    print(f"📋 Loaded {len(students)} student(s) from CSV: {CSV_FILE}")
+    print(f"🆔 CSV id: {CSV_ID}")
+    print(f"📊 Checkpoint file: {CHECKPOINT_FILE}")
+
+    if not os.path.exists(CHECKPOINT_FILE):
+        import_legacy_checkpoint(students)
 
     checkpoint = load_checkpoint()
-    processed_count = len(checkpoint["processed_students"])
-    failed_count = len(checkpoint["failed_students"])
-    print(f"📊 Checkpoint: {processed_count} processed, {failed_count} failed")
-    students = [i for i in students if i['username'] not in checkpoint['processed_students']]
+    processed = set(usernames_with_status(checkpoint, STUDENT_PROCESSED))
+    failed_count = len(usernames_with_status(checkpoint, STUDENT_FAILED))
+    print(f"📊 Checkpoint: {len(processed)} processed, {failed_count} failed")
+    students = [i for i in students if i['username'] not in processed]
     print("student need to process================================", len(students))
 
     if not students:
@@ -1478,8 +1728,8 @@ def main():
             process_batch(batch, batch_number, total_batches)
 
             checkpoint = load_checkpoint()
-            total_processed = len(checkpoint["processed_students"])
-            total_failed = len(checkpoint["failed_students"])
+            total_processed = len(usernames_with_status(checkpoint, STUDENT_PROCESSED))
+            total_failed = len(usernames_with_status(checkpoint, STUDENT_FAILED))
 
     except KeyboardInterrupt:
         print()
