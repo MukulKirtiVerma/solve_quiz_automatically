@@ -1,0 +1,21 @@
+{
+  "title": "The Little Girl and the Lost Star",
+  "story": "\nA nine-year-old girl named Mira lives in a small village near a forest.\nOne evening, she discovers a tiny fallen star glowing beside a river.\nThe star is weak and wants to return to the sky.\n\nMira travels through the forest, meets a friendly fox, crosses an old\nwooden bridge, and reaches a hilltop. There, she helps the star return\nto the night sky.\n\nThe story should feel emotional, magical, hopeful, and suitable for\nchildren.\n",
+  "duration_seconds": 60,
+  "language": "English",
+  "video_style": "cinematic 3D animated fantasy",
+  "visual_quality": "high-detail, polished, feature-film quality",
+  "aspect_ratio": "16:9",
+  "target_video_model": "a modern text-to-video model",
+  "audience": "children and families",
+  "number_of_scenes": 8,
+  "frame_rate": 24,
+  "dialogue_required": true,
+  "voiceover_required": true,
+  "music_required": true,
+  "sound_effects_required": true,
+  "character_consistency_required": true,
+  "reference_image_url": null,
+  "negative_prompt": "\nlow quality, blurry image, distorted anatomy, extra fingers,\ninconsistent faces, changing clothes, changing character age,\nflickering, jittery motion, unwanted text, subtitles, watermark,\nlogo, random objects, inconsistent lighting, broken perspective,\nunnatural physics, duplicated characters\n",
+  "additional_instructions": "\nMaintain the same character appearance, clothing, age, proportions,\nand color palette throughout all scenes. Maintain continuity of\nlocations, props, time of day, and lighting.\n\nEvery scene must logically continue from the previous scene.\nUse clear visual storytelling, physically plausible movement,\ncinematic composition, and expressive but natural acting.\n\nDo not imitate a living artist's exact style. Do not use copyrighted\ncharacters or copyrighted dialogue.\n"
+}

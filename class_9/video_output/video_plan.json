@@ -1,0 +1,471 @@
+{
+  "project_title": "The Little Girl and the Lost Star",
+  "creative_summary": "A nine-year-old girl discovers a tiny fallen star and, with the help of a friendly fox, journeys through a forest to return it to the night sky, ending with hope and wonder.",
+  "story_logline": "Mira finds a weak fallen star, travels with a friendly fox through forest and over a bridge to a hilltop, helps the star ascend, and returns home hopeful.",
+  "estimated_total_duration_seconds": 60,
+  "aspect_ratio": "16:9",
+  "frame_rate": 24,
+  "language": "English",
+  "visual_style": "cinematic 3D animated fantasy",
+  "target_video_model": "a modern text-to-video model",
+  "global_character_bible": [
+    {
+      "name": "Mira",
+      "approximate_age": 9,
+      "physical_appearance": "slender, youthful",
+      "hairstyle_or_body_features": "two neat braids",
+      "clothing": "light blue simple dress with short sleeves",
+      "color_palette": [
+        "pastel blue",
+        "soft white"
+      ],
+      "personality": "curious, kind, determined",
+      "facial_expression_guidelines": "wide-eyed curiosity, gentle smile when hopeful, concerned frown when examining star",
+      "movement_guidelines": "light, graceful steps; runs with enthusiasm; kneels carefully",
+      "continuity_rules": "Maintain same dress, braids, age, proportions; star glow color consistent"
+    },
+    {
+      "name": "Fox",
+      "approximate_age": "young adult",
+      "physical_appearance": "slim, orange-red fur",
+      "hairstyle_or_body_features": "fluffy tail, pointed ears",
+      "clothing": "none",
+      "color_palette": [
+        "orange",
+        "white belly"
+      ],
+      "personality": "friendly, helpful, playful",
+      "facial_expression_guidelines": "alert eyes, perky ears, gentle smile",
+      "movement_guidelines": "quick, agile trotting; tail sways; pauses to look at Mira",
+      "continuity_rules": "Consistent orange fur, no clothing, maintains friendly demeanor"
+    }
+  ],
+  "global_world_bible": {
+    "primary_locations": [
+      "Village riverside",
+      "Forest path",
+      "Old wooden bridge",
+      "Hilltop clearing",
+      "Night sky"
+    ],
+    "architecture": "Quaint wooden cottages with thatched roofs, simple village layout",
+    "landscape": "Dense green forest, gentle river, rolling hills, open sky",
+    "weather": "Clear evenings, mild breezes, occasional mist",
+    "time_period": "Contemporary timeless setting (no modern technology)",
+    "recurring_props": [
+      "glowing star",
+      "wooden bridge",
+      "lanterns"
+    ],
+    "environmental_color_palette": [
+      "soft blues",
+      "warm ambers",
+      "earthy greens",
+      "golden highlights"
+    ],
+    "lighting_rules": "Natural light transitions from dusk to night to dawn; soft ambient glow for magical elements; consistent warm highlights on characters"
+  },
+  "global_visual_rules": [
+    "Maintain consistent character design and color palette across all scenes",
+    "Use cinematic lighting with soft shadows, avoiding harsh contrast",
+    "Ensure motion is physically plausible, with weight and balance",
+    "Keep background elements stable to aid continuity",
+    "Apply subtle depth of field to focus on key actions"
+  ],
+  "global_negative_prompt": "low quality, blurry image, distorted anatomy, extra fingers, inconsistent faces, changing clothes, changing character age, flickering, jittery motion, unwanted text, subtitles, watermark, logo, random objects, inconsistent lighting, broken perspective, unnatural physics, duplicated characters",
+  "scene_list": [
+    {
+      "scene_id": "Scene 1",
+      "start_time": 0,
+      "end_time": 9,
+      "duration_seconds": 9,
+      "scene_goal": "Introduce Mira and the fallen star",
+      "story_beat": "Mira discovers a tiny glowing star beside the river in the village at dusk",
+      "location": "Village riverside",
+      "time_of_day": "Evening",
+      "weather": "Clear, gentle breeze",
+      "environment_description": "A quiet village with wooden cottages, a calm river reflecting the twilight sky, lanterns glowing softly",
+      "characters_present": [
+        "Mira"
+      ],
+      "character_actions": "Mira walks along the riverbank, stops, kneels, and reaches toward the star",
+      "emotions": [
+        "curiosity",
+        "wonder"
+      ],
+      "camera_shot": "Medium shot",
+      "camera_angle": "Eye-level, slightly low angle to emphasize star",
+      "camera_movement": "Slow dolly in toward Mira and star",
+      "lens_or_visual_perspective": "35mm lens, shallow depth of field",
+      "composition": "Rule of thirds, star placed in lower right third, Mira in left foreground",
+      "lighting": "Soft twilight with warm amber glow from lanterns, cool blue sky",
+      "color_palette": [
+        "pastel blue",
+        "soft green",
+        "warm amber",
+        "golden glow"
+      ],
+      "motion_and_physics": "Gentle ripple on river, subtle sway of Mira's dress, star emits a faint pulsing light",
+      "dialogue": "Mira: \"What are you doing here, little star?\"",
+      "voiceover": "Narration: \"In a quiet village by the river, nine‑year‑old Mira found a tiny star fallen to earth.\"",
+      "sound_effects": [
+        "soft river flow",
+        "crickets chirping",
+        "gentle rustle of dress"
+      ],
+      "background_music": "Gentle harp melody with ambient night sounds",
+      "transition_to_next_scene": "Fade to close‑up of Mira holding the star",
+      "continuity_notes": "Mira's dress, braided hair, and pastel color palette remain consistent; star glows with soft golden hue",
+      "image_generation_prompt": "A nine‑year‑old girl with two braids, wearing a light blue dress, kneeling beside a glowing tiny star on a riverbank at twilight, pastel village cottages in background, soft lantern light, cinematic 3D animated style, high detail",
+      "video_generation_prompt": "Scene opens with a wide view of a quiet village riverside at dusk, camera slowly tracks Mira as she walks, stops, and kneels beside a faintly glowing star; soft amber lantern light reflects on water, star pulses gently, pastel colors, cinematic 3D animation, high‑detail, 24fps, 16:9",
+      "negative_prompt": "low quality, blurry image, distorted anatomy, extra fingers, inconsistent faces, changing clothes, changing character age, flickering, jittery motion, unwanted text, subtitles, watermark, logo, random objects, inconsistent lighting, broken perspective, unnatural physics, duplicated characters"
+    },
+    {
+      "scene_id": "Scene 2",
+      "start_time": 9,
+      "end_time": 16,
+      "duration_seconds": 7,
+      "scene_goal": "Show Mira examining the weak star",
+      "story_beat": "Mira holds the star, noticing its dim glow",
+      "location": "Riverbank",
+      "time_of_day": "Evening",
+      "weather": "Clear",
+      "environment_description": "Close view of riverbank with gentle water reflections, lantern light",
+      "characters_present": [
+        "Mira"
+      ],
+      "character_actions": "Mira gently cradles the star in both hands, eyes focused, slight frown",
+      "emotions": [
+        "concern",
+        "determination"
+      ],
+      "camera_shot": "Close‑up",
+      "camera_angle": "Slightly high angle looking down at hands",
+      "camera_movement": "Static with subtle push‑in",
+      "lens_or_visual_perspective": "50mm lens, shallow depth",
+      "composition": "Centered on Mira's hands and star, background blurred",
+      "lighting": "Warm golden glow from star, soft twilight ambient",
+      "color_palette": [
+        "golden star glow",
+        "muted blues",
+        "soft skin tones"
+      ],
+      "motion_and_physics": "Star flickers weakly, Mira's fingers adjust grip, slight breath visible",
+      "dialogue": "Mira: \"You’re far from home, little one.\"",
+      "voiceover": "Narration: \"She realized the star was weak and needed help to return to the sky.\"",
+      "sound_effects": [
+        "soft rustle of dress",
+        "faint star hum"
+      ],
+      "background_music": "Continuing gentle harp, adding a subtle swell",
+      "transition_to_next_scene": "Cut to forest path as Mira decides to travel",
+      "continuity_notes": "Mira's dress and braids unchanged, star retains golden hue; lighting shifts to forest shadows",
+      "image_generation_prompt": "Close‑up of Mira, a nine‑year‑old girl with braids and a light blue dress, cradling a small glowing star in her hands on a riverbank at twilight, soft lantern light reflecting, high‑detail 3D animated style",
+      "video_generation_prompt": "Camera focuses tightly on Mira's hands holding the dim star, gentle light illuminates her face, star pulses faintly, pastel colors, cinematic 3D animation, smooth motion, 24fps",
+      "negative_prompt": "low quality, blurry image, distorted anatomy, extra fingers, inconsistent faces, changing clothes, changing character age, flickering, jittery motion, unwanted text, subtitles, watermark, logo, random objects, inconsistent lighting, broken perspective, unnatural physics, duplicated characters"
+    },
+    {
+      "scene_id": "Scene 3",
+      "start_time": 16,
+      "end_time": 24,
+      "duration_seconds": 8,
+      "scene_goal": "Mira meets a friendly fox in the forest",
+      "story_beat": "A friendly fox appears and offers guidance",
+      "location": "Forest path",
+      "time_of_day": "Evening",
+      "weather": "Clear, slight mist",
+      "environment_description": "Dense forest with tall trees, dappled sunlight, mossy ground, soft shadows",
+      "characters_present": [
+        "Mira",
+        "Fox"
+      ],
+      "character_actions": "Fox trots into frame, pauses, looks at Mira, tail wagging; Mira smiles and extends hand",
+      "emotions": [
+        "friendliness",
+        "hope"
+      ],
+      "camera_shot": "Medium shot",
+      "camera_angle": "Eye‑level",
+      "camera_movement": "Slight pan to follow fox entering",
+      "lens_or_visual_perspective": "35mm lens, moderate depth",
+      "composition": "Fox positioned to the right, Mira to the left, balanced",
+      "lighting": "Warm golden shafts through canopy, cool green undergrowth",
+      "color_palette": [
+        "forest green",
+        "earth brown",
+        "orange fox fur",
+        "Mira's blue dress"
+      ],
+      "motion_and_physics": "Fox's tail sways, leaves rustle, Mira's steps light",
+      "dialogue": "Mira: \"Hello, little fox. Can you help me?\"",
+      "voiceover": "Narration: \"In the forest, a friendly fox appeared, offering to guide her.\"",
+      "sound_effects": [
+        "rustling leaves",
+        "fox footfalls",
+        "soft wind"
+      ],
+      "background_music": "Gentle woodwind melody",
+      "transition_to_next_scene": "Follow the fox deeper into the woods",
+      "continuity_notes": "Mira's attire unchanged, fox's orange fur contrasts with green, lighting remains dappled",
+      "image_generation_prompt": "Mira, a nine‑year‑old girl with braids and a light blue dress, standing on a forest path as a friendly orange fox approaches, dappled sunlight filtering through trees, high‑detail 3D animated style",
+      "video_generation_prompt": "Camera captures Mira and the fox on a forest trail, fox trotting toward her, dappled light creating moving shadows, pastel colors, smooth 3D animation, 24fps",
+      "negative_prompt": "low quality, blurry image, distorted anatomy, extra fingers, inconsistent faces, changing clothes, changing character age, flickering, jittery motion, unwanted text, subtitles, watermark, logo, random objects, inconsistent lighting, broken perspective, unnatural physics, duplicated characters"
+    },
+    {
+      "scene_id": "Scene 4",
+      "start_time": 24,
+      "end_time": 30,
+      "duration_seconds": 6,
+      "scene_goal": "Travel deeper with the fox",
+      "story_beat": "Fox leads Mira through the forest",
+      "location": "Forest interior",
+      "time_of_day": "Evening",
+      "weather": "Clear",
+      "environment_description": "Dense trees, soft moss, faint mist, shafts of light",
+      "characters_present": [
+        "Mira",
+        "Fox"
+      ],
+      "character_actions": "Fox darts ahead, Mira follows, stepping over roots, looking around",
+      "emotions": [
+        "trust",
+        "adventure"
+      ],
+      "camera_shot": "Tracking shot",
+      "camera_angle": "Over‑the‑shoulder from behind Mira",
+      "camera_movement": "Follows fox forward, slight handheld sway",
+      "lens_or_visual_perspective": "35mm lens, moderate depth",
+      "composition": "Fox in front, Mira slightly behind, leading lines of path",
+      "lighting": "Cool blue twilight with warm highlights from sunbeams",
+      "color_palette": [
+        "deep green",
+        "soft brown",
+        "orange fox",
+        "Mira's blue"
+      ],
+      "motion_and_physics": "Fox's swift movements, leaves rustle, Mira's steady steps",
+      "dialogue": "Fox (non‑verbal): (no dialogue) but body language indicates guidance",
+      "voiceover": "Narration: \"The fox led Mira deeper into the forest, its eyes bright with purpose.\"",
+      "sound_effects": [
+        "footsteps on moss",
+        "rustling leaves",
+        "soft wind"
+      ],
+      "background_music": "Continuing gentle strings",
+      "transition_to_next_scene": "Approach an old wooden bridge over a river",
+      "continuity_notes": "Mira's dress and braids unchanged, fox remains orange, lighting consistent with forest twilight",
+      "image_generation_prompt": "Mira following a friendly orange fox along a forest trail, dappled sunlight, mossy ground, high‑detail 3D animated style",
+      "video_generation_prompt": "Tracking shot follows Mira and the fox as they walk deeper into the forest, fox leading, leaves rustling, pastel color palette, smooth 3D animation, 24fps",
+      "negative_prompt": "low quality, blurry image, distorted anatomy, extra fingers, inconsistent faces, changing clothes, changing character age, flickering, jittery motion, unwanted text, subtitles, watermark, logo, random objects, inconsistent lighting, broken perspective, unnatural physics, duplicated characters"
+    },
+    {
+      "scene_id": "Scene 5",
+      "start_time": 30,
+      "end_time": 36,
+      "duration_seconds": 6,
+      "scene_goal": "Cross an old wooden bridge",
+      "story_beat": "Mira and the fox cross a rustic bridge over a river",
+      "location": "Old wooden bridge over river",
+      "time_of_day": "Evening",
+      "weather": "Clear",
+      "environment_description": "Rickety wooden bridge spanning a gentle river, surrounding trees, twilight reflections",
+      "characters_present": [
+        "Mira",
+        "Fox"
+      ],
+      "character_actions": "Fox steps onto bridge first, Mira follows, careful steps, bridge creaks",
+      "emotions": [
+        "caution",
+        "trust"
+      ],
+      "camera_shot": "Wide shot",
+      "camera_angle": "Low angle from riverbank",
+      "camera_movement": "Static with slight pan as they cross",
+      "lens_or_visual_perspective": "24mm lens, deep depth",
+      "composition": "Bridge spans horizontally, characters centered, river below",
+      "lighting": "Soft twilight, warm glow from lanterns on bridge",
+      "color_palette": [
+        "warm wood brown",
+        "river blue",
+        "Mira's blue dress",
+        "fox orange"
+      ],
+      "motion_and_physics": "Bridge flexes slightly under weight, water ripples, fox's tail sways",
+      "dialogue": "Mira: \"Watch your step, it's old.\"",
+      "voiceover": "Narration: \"Together they crossed an old wooden bridge that spanned the quiet river.\"",
+      "sound_effects": [
+        "creaking wood",
+        "water flowing",
+        "fox footfalls"
+      ],
+      "background_music": "Gentle piano with ambient water sounds",
+      "transition_to_next_scene": "Reach the hilltop clearing",
+      "continuity_notes": "Mira's attire unchanged, fox stays close, lighting shifts to brighter hilltop",
+      "image_generation_prompt": "Mira and a friendly orange fox crossing a rustic wooden bridge over a calm river at twilight, lanterns glowing, high‑detail 3D animated style",
+      "video_generation_prompt": "Wide shot of the wooden bridge, fox leads, Mira follows carefully, bridge creaks, river reflects twilight, pastel colors, smooth 3D animation, 24fps",
+      "negative_prompt": "low quality, blurry image, distorted anatomy, extra fingers, inconsistent faces, changing clothes, changing character age, flickering, jittery motion, unwanted text, subtitles, watermark, logo, random objects, inconsistent lighting, broken perspective, unnatural physics, duplicated characters"
+    },
+    {
+      "scene_id": "Scene 6",
+      "start_time": 36,
+      "end_time": 45,
+      "duration_seconds": 9,
+      "scene_goal": "Reach hilltop, star weak, Mira helps",
+      "story_beat": "They arrive at a hilltop where the star is fading",
+      "location": "Hilltop clearing",
+      "time_of_day": "Evening",
+      "weather": "Clear, slight breeze",
+      "environment_description": "Open hilltop with a view of the night sky, gentle wind, grass swaying, star hovering low",
+      "characters_present": [
+        "Mira",
+        "Star"
+      ],
+      "character_actions": "Mira kneels, lifts the star with both hands, star glows brighter",
+      "emotions": [
+        "hope",
+        "determination"
+      ],
+      "camera_shot": "Medium close-up",
+      "camera_angle": "Slightly low angle looking up at star",
+      "camera_movement": "Slow zoom in on star as Mira lifts",
+      "lens_or_visual_perspective": "50mm lens, shallow depth",
+      "composition": "Star centered, Mira's hands framing it, sky background",
+      "lighting": "Soft moonlight, star emits warm golden light",
+      "color_palette": [
+        "deep blue night sky",
+        "golden star glow",
+        "Mira's blue dress",
+        "green grass"
+      ],
+      "motion_and_physics": "Star pulses weakly then brightens, grass gently sways, Mira's breath visible",
+      "dialogue": "Mira: \"Hold on, little star, we’ll get you home.\"",
+      "voiceover": "Narration: \"On a quiet hilltop, Mira helped the weak star gather strength to rise.\"",
+      "sound_effects": [
+        "soft wind",
+        "star hum",
+        "gentle grass rustle"
+      ],
+      "background_music": "Gentle strings building hope",
+      "transition_to_next_scene": "Star ascends into the sky",
+      "continuity_notes": "Star retains golden hue, Mira's dress unchanged, night sky background",
+      "image_generation_prompt": "Mira kneeling on a grassy hilltop at dusk, cradling a glowing star that brightens, night sky background, high‑detail 3D animated style",
+      "video_generation_prompt": "Camera focuses on Mira lifting the star, star glows brighter, night sky deep blue, pastel colors, smooth 3D animation, 24fps",
+      "negative_prompt": "low quality, blurry image, distorted anatomy, extra fingers, inconsistent faces, changing clothes, changing character age, flickering, jittery motion, unwanted text, subtitles, watermark, logo, random objects, inconsistent lighting, broken perspective, unnatural physics, duplicated characters"
+    },
+    {
+      "scene_id": "Scene 7",
+      "start_time": 45,
+      "end_time": 54,
+      "duration_seconds": 9,
+      "scene_goal": "Star returns to the sky",
+      "story_beat": "The star ascends, leaving a glowing trail",
+      "location": "Night sky above hilltop",
+      "time_of_day": "Night",
+      "weather": "Clear",
+      "environment_description": "Vast night sky filled with stars, the small star rises, leaving a luminous trail",
+      "characters_present": [
+        "Star"
+      ],
+      "character_actions": "Star rises slowly, leaving a sparkling trail, fades into distant constellations",
+      "emotions": [
+        "awe",
+        "peace"
+      ],
+      "camera_shot": "Wide shot",
+      "camera_angle": "Low angle looking up",
+      "camera_movement": "Tilt up following star's ascent",
+      "lens_or_visual_perspective": "Wide-angle lens, deep depth",
+      "composition": "Star positioned centrally, trail leading upward, horizon line low",
+      "lighting": "Starry night, star's glow illuminates surrounding clouds",
+      "color_palette": [
+        "deep indigo",
+        "golden star light",
+        "soft white clouds"
+      ],
+      "motion_and_physics": "Star moves upward smoothly, trail fades, clouds drift slowly",
+      "dialogue": "Mira (voiceover): \"Thank you, little star.\"",
+      "voiceover": "Narration: \"The star rose, its light weaving through the night, returning home.\"",
+      "sound_effects": [
+        "soft whoosh",
+        "gentle wind",
+        "distant crickets"
+      ],
+      "background_music": "Ethereal chimes, swelling strings",
+      "transition_to_next_scene": "Mira looks back toward the village",
+      "continuity_notes": "Star's golden hue consistent, Mira's silhouette visible, night setting",
+      "image_generation_prompt": "A glowing star rising into a deep indigo night sky above a grassy hilltop, leaving a sparkling trail, high‑detail 3D animated style",
+      "video_generation_prompt": "Wide shot of night sky, star ascends slowly with luminous trail, pastel colors, smooth 3D animation, 24fps, 16:9",
+      "negative_prompt": "low quality, blurry image, distorted anatomy, extra fingers, inconsistent faces, changing clothes, changing character age, flickering, jittery motion, unwanted text, subtitles, watermark, logo, random objects, inconsistent lighting, broken perspective, unnatural physics, duplicated characters"
+    },
+    {
+      "scene_id": "Scene 8",
+      "start_time": 54,
+      "end_time": 60,
+      "duration_seconds": 6,
+      "scene_goal": "Mira returns home, hopeful",
+      "story_beat": "Mira walks back to the village as sunrise begins",
+      "location": "Village path at dawn",
+      "time_of_day": "Dawn",
+      "weather": "Clear",
+      "environment_description": "Soft pink sunrise over village rooftops, gentle light, Mira walking along a path",
+      "characters_present": [
+        "Mira"
+      ],
+      "character_actions": "Mira walks confidently, smiling, looking toward the sky",
+      "emotions": [
+        "contentment",
+        "hope"
+      ],
+      "camera_shot": "Medium shot",
+      "camera_angle": "Eye-level",
+      "camera_movement": "Steady forward tracking",
+      "lens_or_visual_perspective": "35mm lens, moderate depth",
+      "composition": "Mira centered, village rooftops in background, sunrise light",
+      "lighting": "Warm pink-orange sunrise, soft shadows",
+      "color_palette": [
+        "soft pink",
+        "warm orange",
+        "Mira's blue dress",
+        "green grass"
+      ],
+      "motion_and_physics": "Gentle breeze moves hair, footsteps light, sunrise glow",
+      "dialogue": "Mira: \"The sky is bright again.\"",
+      "voiceover": "Narration: \"With the star safely home, Mira returned to her village, hopeful for tomorrow.\"",
+      "sound_effects": [
+        "soft footsteps",
+        "morning birds",
+        "gentle breeze"
+      ],
+      "background_music": "Uplifting acoustic melody",
+      "transition_to_next_scene": "Fade out",
+      "continuity_notes": "Mira's dress and braids unchanged, sunrise lighting consistent, star no longer visible",
+      "image_generation_prompt": "Mira, a nine‑year‑old girl with braids and a light blue dress, walking along a village path at dawn, pink sunrise lighting, hopeful expression, high‑detail 3D animated style",
+      "video_generation_prompt": "Medium shot of Mira walking toward the village at sunrise, warm pink light, gentle breeze, pastel colors, smooth 3D animation, 24fps",
+      "negative_prompt": "low quality, blurry image, distorted anatomy, extra fingers, inconsistent faces, changing clothes, changing character age, flickering, jittery motion, unwanted text, subtitles, watermark, logo, random objects, inconsistent lighting, broken perspective, unnatural physics, duplicated characters"
+    }
+  ],
+  "complete_voiceover_script": "In a quiet village by the river, nine‑year‑old Mira found a tiny star fallen to earth. She realized the star was weak and needed help to return to the sky. In the forest, a friendly fox appeared, offering to guide her. The fox led Mira deeper into the forest, its eyes bright with purpose. Together they crossed an old wooden bridge that spanned the quiet river. On a quiet hilltop, Mira helped the weak star gather strength to rise. The star rose, its light weaving through the night, returning home. With the star safely home, Mira returned to her village, hopeful for tomorrow.",
+  "complete_dialogue_script": [
+    "Mira: \"What are you doing here, little star?\"",
+    "Mira: \"You’re far from home, little one.\"",
+    "Mira: \"Hello, little fox. Can you help me?\"",
+    "Mira: \"Watch your step, it's old.\"",
+    "Mira: \"Hold on, little star, we’ll get you home.\"",
+    "Mira: \"Thank you, little star.\"",
+    "Mira: \"The sky is bright again.\""
+  ],
+  "music_and_sound_design": "Gentle orchestral score with harp, strings, and soft chimes evolves from calm evening to hopeful sunrise. Ambient river flow, rustling leaves, fox footfalls, bridge creak, star hum, wind whoosh, sunrise birds, soft footsteps provide texture. Warm, clear female narration delivers short lines per scene. Dialogue is brief and child‑friendly.",
+  "editing_and_postproduction_notes": "Cut on action between scenes for smooth flow; maintain consistent color grading to unify pastel palette; ensure lighting transitions match time of day; sync voiceover and music precisely to scene timing; add subtle particle effects for star glow; verify 24 fps throughout; final render in high‑detail 16:9 format.",
+  "quality_control_checklist": [
+    "Character appearance and clothing unchanged across all scenes",
+    "Star glow color and animation consistent",
+    "Camera movements smooth, no jitter",
+    "Duration of each scene matches allocated seconds",
+    "Audio levels balanced, no clipping",
+    "No unwanted text or watermarks",
+    "Continuity of environment lighting and weather",
+    "Frame rate 24 fps maintained",
+    "Audio sync with visual actions",
+    "Final render resolution high‑detail, 16:9 aspect ratio"
+  ]
+}

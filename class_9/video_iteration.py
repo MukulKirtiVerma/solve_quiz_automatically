@@ -5,20 +5,27 @@ Khan Academy Batch Automation — v3 (Extension + Login Fix)
 - Validates extension path thoroughly (handles nested folders, .zip)
 - Robust Khan Academy login with multiple fallback selectors
 - Saves debug HTML on login failure so you can inspect
+- Video checkpoint per CSV (student -> video), kept separate from the quiz
+  script's checkpoint, so several instances can run on different CSVs:
+      python video_iteration.py data/unique_student_records3.csv
 """
 
 import csv
 import time
 import os
+import re
 import sys
 import subprocess
 import shutil
 import json
+import hashlib
 import zipfile
 import platform
 import random
 import urllib.request
+from datetime import datetime
 from pathlib import Path
+from urllib.parse import unquote, urlparse
 
 # ────────────────────────────────
 # AUTO-INSTALL DEPENDENCIES
@@ -50,26 +57,226 @@ from webdriver_manager.chrome import ChromeDriverManager
 # CONFIGURATION — UPDATE THESE
 # ────────────────────────────────
 
-CSV_FILE = "/Users/mukulkirtiverma/PycharmProjects/solve_quiz_automatically/class_9/data/student_roster_o.csv"
-EXTENSION_PATH = "/Users/mukulkirtiverma/Downloads/ka-autoplay-2x"
+DEFAULT_CSV_FILE = "data/student_credentials_all_9.csv"
+# Optional first CLI argument overrides the CSV, so one script can run per CSV in parallel.
+CSV_FILE = os.path.abspath(sys.argv[1] if len(sys.argv) > 1 else DEFAULT_CSV_FILE)
+# True = run Chrome without a visible window, False = show the browser.
+HEADLESS = True
+EXTENSION_PATH = "ka-autoplay-2x"
 BATCH_SIZE = 1
-WAIT_MINUTES = 5
+WAIT_MINUTES = 9
+
+# A video counts as watched once it ends or its playback position reaches this %.
+# A tab that has moved off its video page (the autoplay extension clicks "Up next"
+# when a video ends) also counts, if enough time passed since it was last seen
+# for the video to have played up to this % at its playback speed.
+VIDEO_WATCHED_PERCENT = 90
 LOGIN_URL = "https://en.khanacademy.org/login"
 
 VIDEO_URLS = [
-    "https://en.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:chemical-reactions-and-equations/x5d08d26681869997:types-of-chemical-equations/v/intro-to-chemical-reactions",
-    "https://en.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:chemical-reactions-and-equations/x5d08d26681869997:types-of-chemical-equations/v/balancing-chemical-equation-with-substitution",
-    "https://en.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:chemical-reactions-and-equations/x5d08d26681869997:combination-and-decomposition-reactions/v/combination-and-decomposition-reaction-chemical-reactions-and-equations-chemistry-khan-academy",
-    "https://en.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:chemical-reactions-and-equations/x5d08d26681869997:endothermic-and-exothermic-reactions/v/exothermic-and-endothermic-reactions-chemical-reactions-chemistry-khan-academy",
+   "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:is-matter-around-us-pure/x699e14d392a80aeb:mixtures-and-solution/v/types-of-mixtures-middle-school-chemistry-khan-academy",
+    "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:is-matter-around-us-pure/x699e14d392a80aeb:mixtures-and-solution/v/concentration-of-a-solution",
+    "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:is-matter-around-us-pure/x699e14d392a80aeb:solution-suspensions-and-colloids/v/solution-suspension-and-colloid",
+    "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:is-matter-around-us-pure/x699e14d392a80aeb:solution-suspensions-and-colloids/v/scattering-of-light-tyndall-effect",
+    "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:is-matter-around-us-pure/x699e14d392a80aeb:solution-suspensions-and-colloids/v/classification-of-colloids",
+    "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:is-matter-around-us-pure/x699e14d392a80aeb:methods-of-separation/v/in-vaporisation",
+    "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:is-matter-around-us-pure/x699e14d392a80aeb:methods-of-separation/v/simple-and-fractional-distillations",
+    "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:is-matter-around-us-pure/x699e14d392a80aeb:methods-of-separation/v/sublimation",
+    "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:is-matter-around-us-pure/x699e14d392a80aeb:methods-of-separation/v/filtration",
+    "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:is-matter-around-us-pure/x699e14d392a80aeb:methods-of-separation/v/chromatography",
+    "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:is-matter-around-us-pure/x699e14d392a80aeb:methods-of-separation/v/basics-of-chromatography-in-accent",
+    "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:is-matter-around-us-pure/x699e14d392a80aeb:methods-of-separation/v/crystallization-vs-growth-of-plant-from-seed",
+    "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:is-matter-around-us-pure/x699e14d392a80aeb:methods-of-separation/v/crystallisation",
+    "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:is-matter-around-us-pure/x699e14d392a80aeb:difference-between-pure-substances-and-mixtures/v/pure-substances-and-mixtures",
+    "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:atoms-and-molecules/x699e14d392a80aeb:law-of-chemical-combinations/v/law-of-conservation-of-mass",
+    "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:atoms-and-molecules/x699e14d392a80aeb:law-of-chemical-combinations/v/law-of-definite-proportions",
+    "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:atoms-and-molecules/x699e14d392a80aeb:what-is-an-atom/v/elements-and-atoms",
+    "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:atoms-and-molecules/x699e14d392a80aeb:what-is-an-atom/a/matter-elements-atoms-article",
+    "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:atoms-and-molecules/x699e14d392a80aeb:what-is-an-atom/v/introduction-to-the-atom",
+    "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:atoms-and-molecules/x699e14d392a80aeb:molecules-and-ions/v/introduction-to-ions-dubv",
+    "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:atoms-and-molecules/x699e14d392a80aeb:molecules-and-ions/v/naming-ions-and-ionic-compounds-dubv",
+    "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:atoms-and-molecules/x699e14d392a80aeb:molecules-and-ions/v/worked-example-formula-for-an-ionic-compound",
+    "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:atoms-and-molecules/x699e14d392a80aeb:molecules-and-ions/v/common-polyatomic-ions-dubv",
+    "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:atoms-and-molecules/x699e14d392a80aeb:molecules-and-ions/v/naming-ionic-compounds-with-polyvalent-ions",
+    "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:atoms-and-molecules/x699e14d392a80aeb:molecules-and-ions/v/worked-example-calculating-molecular-weight",
+    "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:atoms-and-molecules/x699e14d392a80aeb:molecules-and-ions/v/the-mole-and-avogadros-number"
 
 ]
 
-VIDEO_URLS = [
-    "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:matter-in-our-surroudnings/x699e14d392a80aeb:matter-and-particles-make-up-matter/v/characteristics-of-particles-of-matter",
-    "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:matter-in-our-surroudnings/x699e14d392a80aeb:states-of-matter/v/states-of-matter-in",
-    "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:matter-in-our-surroudnings/x699e14d392a80aeb:states-of-matter/v/effect-of-temp-and-pressure-on-state-change",
-    "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:matter-in-our-surroudnings/x699e14d392a80aeb:states-of-matter/v/evaporation-and-its-cooling-effect"
-]
+
+# ────────────────────────────────
+# VIDEO CHECKPOINT (separate from the quiz script's ka_quiz_progress)
+# ────────────────────────────────
+# ka_video_progress/<CSV_ID>/checkpoint.json:
+# {
+#   "csv_id": "...", "csv_file": "/abs/path.csv", "updated_at": "...",
+#   "students": {
+#     "<username>": {
+#       "name": "...", "status": "complete" | "partial" | "failed", "error": "", "updated_at": "...",
+#       "videos": {
+#         "<video_id>": {"status": "watched" | "partial" | "not_started",
+#                        "watched_percent": 73.4, "url": "...", "updated_at": "..."}
+#       }
+#     }
+#   }
+# }
+# A student is re-run until every video is "watched"; each re-run opens only the
+# videos that are still missing.
+
+def make_csv_id(csv_path):
+    """Stable id for a CSV: '<file stem>_<hash of its absolute path>'."""
+    abs_path = os.path.abspath(csv_path)
+    stem = re.sub(r"[^A-Za-z0-9_-]", "_", Path(abs_path).stem)
+    digest = hashlib.sha1(abs_path.encode("utf-8")).hexdigest()[:8]
+    return f"{stem}_{digest}"
+
+
+def video_id_from_url(url):
+    """'.../v/acids-bases-introduction' -> 'acids-bases-introduction'"""
+    path = unquote(urlparse(url).path).rstrip("/")
+    return path.rsplit("/", 1)[-1].rsplit(":", 1)[-1].lower()
+
+
+CSV_ID = make_csv_id(CSV_FILE)
+OUTPUT_DIR = os.path.join("ka_video_progress", CSV_ID)
+CHECKPOINT_FILE = os.path.join(OUTPUT_DIR, "checkpoint.json")
+# Only profiles with this prefix belong to this instance (and only these get cleaned up).
+PROFILE_PREFIX = f"chrome_profile_video_{CSV_ID}_"
+
+STUDENT_COMPLETE = "complete"
+STUDENT_PARTIAL = "partial"
+STUDENT_FAILED = "failed"
+
+VIDEO_WATCHED = "watched"
+VIDEO_PARTIAL = "partial"
+VIDEO_NOT_STARTED = "not_started"
+
+
+def _now():
+    return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+
+def _new_checkpoint():
+    return {"csv_id": CSV_ID, "csv_file": CSV_FILE, "students": {}}
+
+
+def save_checkpoint(checkpoint):
+    os.makedirs(OUTPUT_DIR, exist_ok=True)
+    checkpoint["updated_at"] = _now()
+    tmp_file = f"{CHECKPOINT_FILE}.tmp"
+    with open(tmp_file, "w", encoding="utf-8") as f:
+        json.dump(checkpoint, f, indent=2)
+    # Atomic swap: a crash/Ctrl-C mid-write can never leave a truncated checkpoint.
+    os.replace(tmp_file, CHECKPOINT_FILE)
+
+
+def load_checkpoint():
+    try:
+        with open(CHECKPOINT_FILE, "r", encoding="utf-8") as f:
+            checkpoint = json.load(f)
+    except FileNotFoundError:
+        return _new_checkpoint()
+    except json.JSONDecodeError:
+        backup = f"{CHECKPOINT_FILE}.corrupt_{datetime.now():%Y%m%d_%H%M%S}"
+        shutil.copy(CHECKPOINT_FILE, backup)
+        print(f"⚠️  Checkpoint unreadable, starting a fresh one (old file kept at {backup})")
+        checkpoint = _new_checkpoint()
+        save_checkpoint(checkpoint)
+        return checkpoint
+
+    checkpoint.setdefault("students", {})
+    return checkpoint
+
+
+def _student_entry(checkpoint, username, name=""):
+    student = checkpoint["students"].setdefault(username, {"status": "", "videos": {}})
+    if name:
+        student["name"] = name
+    student.setdefault("videos", {})
+    return student
+
+
+def pending_video_urls(checkpoint, username):
+    """VIDEO_URLS this student has not fully watched yet."""
+    videos = checkpoint["students"].get(username, {}).get("videos", {})
+    return [
+        url for url in VIDEO_URLS
+        if videos.get(video_id_from_url(url), {}).get("status") != VIDEO_WATCHED
+    ]
+
+
+def previous_watched_percent(checkpoint, username, url):
+    videos = checkpoint["students"].get(username, {}).get("videos", {})
+    return videos.get(video_id_from_url(url), {}).get("watched_percent", 0)
+
+
+def mark_student(username, name, status, error=""):
+    checkpoint = load_checkpoint()
+    _student_entry(checkpoint, username, name).update(
+        status=status, error=error, updated_at=_now()
+    )
+    save_checkpoint(checkpoint)
+
+
+class StudentSession:
+    """One logged-in browser for one student, and how far each of its video tabs has got."""
+
+    def __init__(self, name, username, driver):
+        self.name = name
+        self.username = username
+        self.driver = driver
+        self.tabs = {}  # window handle -> per-video progress dict
+
+    def add_tab(self, handle, url, start_percent=0):
+        self.tabs[handle] = {
+            "url": url,
+            "video_id": video_id_from_url(url),
+            "percent": start_percent,  # furthest position seen, in %
+            "watched": False,
+            "seen_on_page": False,     # has this tab been seen on its own video page yet?
+            "left_page": False,        # has it since moved off that page?
+            # last observation, used to tell whether a page change came after the video ended
+            "last_seen": None, "last_pos": 0, "duration": 0, "rate": 1,
+        }
+
+    def all_watched(self):
+        return bool(self.tabs) and all(tab["watched"] for tab in self.tabs.values())
+
+
+def save_video_progress(sessions):
+    """Write every tab's video progress for these sessions into the checkpoint."""
+    checkpoint = load_checkpoint()
+    for session in sessions:
+        videos = _student_entry(checkpoint, session.username, session.name)["videos"]
+        for tab in session.tabs.values():
+            if tab["watched"]:
+                status = VIDEO_WATCHED
+            elif tab["percent"] > 0:
+                status = VIDEO_PARTIAL
+            else:
+                status = VIDEO_NOT_STARTED
+            videos[tab["video_id"]] = {
+                "status": status,
+                "watched_percent": round(tab["percent"], 1),
+                "url": tab["url"],
+                "updated_at": _now(),
+            }
+    save_checkpoint(checkpoint)
+
+
+def record_student_results(sessions):
+    """Save final video progress and set each student's overall status."""
+    save_video_progress(sessions)
+    checkpoint = load_checkpoint()
+    for session in sessions:
+        left = pending_video_urls(checkpoint, session.username)
+        status = STUDENT_PARTIAL if left else STUDENT_COMPLETE
+        _student_entry(checkpoint, session.username, session.name).update(
+            status=status, error="", updated_at=_now()
+        )
+        watched = len(VIDEO_URLS) - len(left)
+        print(f"    📊 {session.name} ({session.username}): {watched}/{len(VIDEO_URLS)} videos watched → {status}")
+    save_checkpoint(checkpoint)
 
 
 # ────────────────────────────────
@@ -241,8 +448,6 @@ def create_driver(profile_dir, ext_path=None):
     chrome_options.add_argument("--disable-infobars")
     chrome_options.add_argument("--disable-notifications")
     chrome_options.add_argument("--mute-audio")
-    chrome_options.add_argument("--headless")
-
     chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
     chrome_options.add_experimental_option('useAutomationExtension', False)
 
@@ -265,8 +470,11 @@ def create_driver(profile_dir, ext_path=None):
             chrome_options.add_argument(f"--load-extension={ext_path}")
             print(f"    🔌 --load-extension={ext_path}")
 
-    # Optional: visible browser (extensions often fail in headless)
-    # chrome_options.add_argument("--headless=new")
+    # "new" headless is the full browser without a window, so it can still load
+    # the extension (old --headless could not).
+    if HEADLESS:
+        chrome_options.add_argument("--headless=new")
+        print("    👻 Headless mode")
 
     try:
         service = Service(ChromeDriverManager(driver_version=cft_version).install())
@@ -499,13 +707,23 @@ def accept_cookie_consent(driver, wait_seconds=10):
 # ────────────────────────────────
 
 def open_video_tabs(driver, urls):
+    """Open each url in its own tab. Returns [(window_handle, url), ...] so
+    progress can be credited to the right video later."""
+    tabs = []
     for i, url in enumerate(urls):
         if i == 0:
             driver.get(url)
+            time.sleep(1.5)
+            tabs.append((driver.current_window_handle, url))
         else:
-            driver.execute_script(f"window.open('{url}', '_blank');")
-        time.sleep(1.5)
-    print(f"    📑 Opened {len(urls)} video tabs")
+            before = set(driver.window_handles)
+            driver.execute_script("window.open(arguments[0], '_blank');", url)
+            time.sleep(1.5)
+            new_handles = [h for h in driver.window_handles if h not in before]
+            if new_handles:
+                tabs.append((new_handles[0], url))
+    print(f"    📑 Opened {len(tabs)} video tabs")
+    return tabs
 
 
 def _find_visible_onboarding_checkbox(driver):
@@ -633,6 +851,41 @@ def _is_video_playing(driver, video):
     )
 
 
+def _video_progress(driver, video):
+    """{'percent': 0-100, 'ended': bool, 'duration': seconds, 'rate': playbackRate}."""
+    return driver.execute_script(
+        "const v = arguments[0];"
+        "const d = isFinite(v.duration) && v.duration > 0 ? v.duration : 0;"
+        "return {percent: d ? Math.min(100, 100 * v.currentTime / d) : 0, ended: !!v.ended,"
+        "        duration: d, rate: v.playbackRate || 1};",
+        video,
+    )
+
+
+def _observe_video(driver, video, tab):
+    """Update a StudentSession tab from its <video>. Returns True once it counts as watched."""
+    progress = _video_progress(driver, video)
+    tab.update(
+        seen_on_page=True,
+        last_seen=time.time(),
+        last_pos=progress["percent"],
+        duration=progress["duration"],
+        rate=progress["rate"],
+    )
+    tab["percent"] = 100 if progress["ended"] else max(tab["percent"], progress["percent"])
+    if tab["percent"] >= VIDEO_WATCHED_PERCENT:
+        tab["watched"] = True
+    return tab["watched"]
+
+
+def _projected_percent(tab):
+    """Where the tab's video would be now if it kept playing since it was last seen."""
+    if not tab["duration"] or tab["last_seen"] is None:
+        return tab["last_pos"]
+    elapsed = time.time() - tab["last_seen"]
+    return tab["last_pos"] + 100 * elapsed * tab["rate"] / tab["duration"]
+
+
 def _locate_ka_video(driver, wait_seconds):
     """Return (video_element, in_iframe). KA embeds videos two different
     ways depending on the video: some are a directly-hosted MP4 in a plain
@@ -704,10 +957,12 @@ def _ensure_video_playing(driver, video, in_iframe, max_click_attempts=3, play_w
         return False
 
 
-def click_video_players(driver, wait_seconds=10, play_wait_seconds=15, max_click_attempts=3):
+def click_video_players(driver, session=None, wait_seconds=10, play_wait_seconds=15, max_click_attempts=3):
     """Switch to each open tab, handle any onboarding modal, find the KA
     video player (top-frame <video> or YouTube-embed <iframe>, see
-    _locate_ka_video), and get it playing before moving on to the next tab."""
+    _locate_ka_video), and get it playing before moving on to the next tab.
+    With a StudentSession, progress is recorded from this first visit on, so a
+    video that finishes before monitoring reaches its tab is still credited."""
     handles = driver.window_handles
     for i, handle in enumerate(handles, 1):
         driver.switch_to.window(handle)
@@ -718,45 +973,117 @@ def click_video_players(driver, wait_seconds=10, play_wait_seconds=15, max_click
             print(f"    ⚠️  No video player found in tab {i}/{len(handles)}")
             continue
 
+        tab = session.tabs.get(handle) if session else None
         try:
+            if tab is not None and _observe_video(driver, video, tab):
+                print(f"    ✅ Tab {i}/{len(handles)}: {tab['video_id']} already watched ({tab['percent']:.0f}%)")
+                continue
             playing = _ensure_video_playing(driver, video, in_iframe, max_click_attempts, play_wait_seconds)
             if playing:
                 print(f"    ▶️  Video playing in tab {i}/{len(handles)}")
             else:
                 print(f"    ⚠️  Video still not playing in tab {i}/{len(handles)}")
+            if tab is not None:
+                _observe_video(driver, video, tab)
+        except WebDriverException as e:
+            # e.g. the player re-rendered mid-click (stale element); the monitor
+            # loop will pick this tab up again, so don't abandon the remaining tabs.
+            print(f"    ⚠️  Tab {i}/{len(handles)}: {type(e).__name__} — monitor will retry it")
         finally:
             if in_iframe:
                 driver.switch_to.default_content()
 
 
-def monitor_and_keep_playing(drivers, duration_minutes, min_seconds_per_tab=2):
-    """Once every video's been started, spend duration_minutes cycling
-    through every open tab across all given drivers — at least
-    min_seconds_per_tab on each — and resume any video found paused/stalled.
-    Replaces a flat sleep so a video that stops partway through the wait
-    window (an ad, a stall, a missed autoplay) gets nudged back to life
-    instead of silently sitting idle for the rest of the batch."""
-    end_time = time.time() + duration_minutes * 60
-    print(f"    👀 Monitoring playback for {duration_minutes} minute(s)...")
-    while time.time() < end_time:
-        for driver in drivers:
-            handles = driver.window_handles
-            for i, handle in enumerate(handles, 1):
-                if time.time() >= end_time:
-                    return
-                driver.switch_to.window(handle)
-                time.sleep(min_seconds_per_tab)
+def _check_tab(driver, tab, i, total):
+    """Record how far this tab's video has played (tab is its StudentSession
+    entry, or None for an untracked tab) and resume it if it has stalled.
+    Assumes the driver is switched to the tab; may leave it inside an iframe."""
+    if tab is not None and video_id_from_url(driver.current_url) != tab["video_id"]:
+        # The autoplay extension clicks "Up next" only after a video ends. If the
+        # tab was on its video and enough time has passed since then for the video
+        # to have played to the end, the page change means it finished. If it moved
+        # on much sooner, it was something else (e.g. a redirect): don't count it.
+        if tab["seen_on_page"] and not tab["left_page"]:
+            tab["left_page"] = True
+            if _projected_percent(tab) >= VIDEO_WATCHED_PERCENT:
+                tab["watched"] = True
+                tab["percent"] = 100
+                print(f"    ✅ Tab {i}/{total}: finished {tab['video_id']} (moved on to the next item)")
+            else:
+                print(f"    ⚠️  Tab {i}/{total}: left {tab['video_id']} at ~{tab['last_pos']:.0f}% "
+                      f"before it could have finished — not counted")
+        return
 
-                video, in_iframe = _locate_ka_video(driver, wait_seconds=3)
-                if video is None:
-                    continue
+    video, in_iframe = _locate_ka_video(driver, wait_seconds=3)
+    if video is None:
+        return
+
+    if tab is not None and _observe_video(driver, video, tab):
+        print(f"    ✅ Tab {i}/{total}: watched {tab['video_id']} ({tab['percent']:.0f}%)")
+        return  # don't "resume" a finished video — that would replay it
+
+    if not _is_video_playing(driver, video):
+        print(f"    ⏸️  Video paused in tab {i}/{total} — resuming")
+        _ensure_video_playing(driver, video, in_iframe)
+
+
+def monitor_and_keep_playing(sessions, duration_minutes, min_seconds_per_tab=2):
+    """Once every video's been started, spend up to duration_minutes cycling
+    through every open tab of every StudentSession — at least
+    min_seconds_per_tab on each — recording how far each video has played
+    and resuming any video found paused/stalled. Progress is saved to the
+    checkpoint after every pass, and monitoring ends early once every
+    video is watched."""
+    end_time = time.time() + duration_minutes * 60
+    print(f"    👀 Monitoring playback for up to {duration_minutes} minute(s)...")
+    try:
+        while time.time() < end_time:
+            pass_started = time.time()
+            alive_sessions = 0
+            for session in sessions:
+                driver = session.driver
                 try:
-                    if not _is_video_playing(driver, video):
-                        print(f"    ⏸️  Video paused in tab {i}/{len(handles)} — resuming")
-                        _ensure_video_playing(driver, video, in_iframe)
-                finally:
-                    if in_iframe:
-                        driver.switch_to.default_content()
+                    handles = driver.window_handles
+                except Exception as e:  # dead chromedriver raises urllib3 errors, not WebDriverException
+                    print(f"    ⚠️  {session.username}: browser not responding ({type(e).__name__}) — skipping it this pass")
+                    continue
+                alive_sessions += 1
+
+                for i, handle in enumerate(handles, 1):
+                    if time.time() >= end_time:
+                        return
+                    tab = session.tabs.get(handle)
+                    if tab is not None and tab["watched"]:
+                        continue
+                    try:
+                        driver.switch_to.window(handle)
+                        time.sleep(min_seconds_per_tab)
+                        _check_tab(driver, tab, i, len(handles))
+                    except Exception as e:
+                        # Usually StaleElementReferenceException: KA swapped the <video>
+                        # (player re-render, or the tab moved on to another video) between
+                        # finding it and using it. The video is located afresh on every
+                        # pass, so log it and re-check next pass instead of crashing the run.
+                        print(f"    ⚠️  Tab {i}/{len(handles)}: {type(e).__name__} — will re-check next pass")
+                    finally:
+                        try:
+                            driver.switch_to.default_content()
+                        except Exception:
+                            pass
+
+            save_video_progress(sessions)
+
+            if all(session.all_watched() for session in sessions):
+                print("    ✅ All videos watched — ending monitoring early")
+                return
+            if alive_sessions == 0:
+                print("    ⚠️  No browsers left responding — ending monitoring early")
+                return
+            # Never spin: a pass with nothing to check still waits a moment.
+            if time.time() - pass_started < min_seconds_per_tab:
+                time.sleep(min_seconds_per_tab)
+    finally:
+        save_video_progress(sessions)
 
 
 # ────────────────────────────────
@@ -782,18 +1109,27 @@ def process_batch(batch, batch_num, total_batches, ext_path):
     print(f"{'='*60}")
 
     drivers = []
+    sessions = []
 
     for idx, student in enumerate(batch, 1):
         name = student['name']
         user = student['username']
         pw = student['password']
 
-        print(f"\n  [{idx}] 🧑 {name} ({user})")
+        checkpoint = load_checkpoint()
+        pending = pending_video_urls(checkpoint, user)
+        print(f"\n  [{idx}] 🧑 {name} ({user}) — {len(pending)}/{len(VIDEO_URLS)} video(s) left")
+        if not pending:
+            print(f"    ⏭️  All videos already watched (checkpoint)")
+            continue
 
-        # Create isolated profile with Developer mode ON
-        profile_dir = os.path.join(os.getcwd(), f"chrome_profile_{batch_num}_{idx}")
+        # Isolated profile with Developer mode ON — unique per CSV + student, so
+        # parallel instances never share (or delete) each other's profile.
+        safe_user = re.sub(r"[^A-Za-z0-9_.-]", "_", user)
+        profile_dir = os.path.join(os.getcwd(), f"{PROFILE_PREFIX}{safe_user}")
         create_profile_with_dev_mode(profile_dir)
 
+        session = None
         try:
             driver = create_driver(profile_dir=profile_dir, ext_path=ext_path)
             drivers.append(driver)
@@ -810,40 +1146,57 @@ def process_batch(batch, batch_num, total_batches, ext_path):
             success = khan_login(driver, user, pw)
             if not success:
                 print(f"    ⏭️  Skipping tabs for {user}")
+                mark_student(user, name, STUDENT_FAILED, "Login failed")
                 continue
 
             # Accept cookie consent banner if it appears
             accept_cookie_consent(driver)
 
-            # Open video tabs
-            open_video_tabs(driver, VIDEO_URLS)
+            # Open only the videos this student still needs
+            session = StudentSession(name, user, driver)
+            for handle, url in open_video_tabs(driver, pending):
+                session.add_tab(handle, url, previous_watched_percent(checkpoint, user, url))
+            sessions.append(session)
 
-            # Click each video player once to start playback
-            click_video_players(driver)
+            # Click each video player once to start playback (and start tracking progress)
+            click_video_players(driver, session)
 
         except Exception as e:
             print(f"    ❌ Browser error for {user}: {e}")
+            if session is None:  # tabs never opened; otherwise monitoring still records progress
+                mark_student(user, name, STUDENT_FAILED, str(e))
             continue
 
     if drivers:
-        monitor_and_keep_playing(drivers, WAIT_MINUTES)
-
-        print(f"\n🛑 Closing batch {batch_num} browsers...")
-        for d in drivers:
-            try:
-                d.quit()
-            except:
-                pass
-        drivers.clear()
+        try:
+            if sessions:
+                monitor_and_keep_playing(sessions, WAIT_MINUTES)
+        finally:
+            if sessions:
+                try:
+                    record_student_results(sessions)
+                except Exception as e:
+                    print(f"    ⚠️  Could not save checkpoint: {e}")
+            # Always close the browsers, even if monitoring raised or was interrupted,
+            # so no Chrome is left running on a profile cleanup_profiles() deletes.
+            print(f"\n🛑 Closing batch {batch_num} browsers...")
+            for d in drivers:
+                try:
+                    d.quit()
+                except:
+                    pass
+            drivers.clear()
         print(f"✅ Batch {batch_num} complete.")
     else:
         print(f"⚠️  No browsers started for batch {batch_num}.")
 
 
 def cleanup_profiles():
+    """Remove only this instance's Chrome profiles: other instances (other CSVs,
+    or the quiz script) may be running from the same folder with their own."""
     cwd = os.getcwd()
     for item in os.listdir(cwd):
-        if item.startswith("chrome_profile_"):
+        if item.startswith(PROFILE_PREFIX):
             path = os.path.join(cwd, item)
             try:
                 shutil.rmtree(path)
@@ -856,6 +1209,7 @@ def main():
     print("=" * 60)
     print("  Khan Academy Batch Automation v3")
     print("=" * 60)
+    print(f"🖥️  Headless: {HEADLESS}")
 
     if not os.path.exists(CSV_FILE):
         print(f"\n❌ CSV not found: {CSV_FILE}")
@@ -869,11 +1223,22 @@ def main():
         print("   Fix: Update EXTENSION_PATH to the folder containing manifest.json")
 
     students = read_students(CSV_FILE)
-    print(f"\n📋 Loaded {len(students)} student records.")
+    print(f"\n📋 Loaded {len(students)} student records from {CSV_FILE}")
+    print(f"🆔 CSV id: {CSV_ID}")
+    print(f"📊 Video checkpoint: {CHECKPOINT_FILE}")
 
     if not students:
         print("❌ No students found.")
         sys.exit(1)
+
+    checkpoint = load_checkpoint()
+    done = [s for s in students if not pending_video_urls(checkpoint, s['username'])]
+    students = [s for s in students if pending_video_urls(checkpoint, s['username'])]
+    print(f"📊 Checkpoint: {len(done)} student(s) already watched every video, {len(students)} to go")
+
+    if not students:
+        print("✅ Nothing left to watch for this CSV.")
+        return
 
     batches = [students[i:i + BATCH_SIZE] for i in range(0, len(students), BATCH_SIZE)]
     total_batches = len(batches)
