@@ -82,7 +82,7 @@ from PIL import Image
 # CONFIGURATION
 # ============================================================
 
-DEFAULT_CSV_FILE = "/Users/mukulkirtiverma/PycharmProjects/solve_quiz_automatically/class_10/data/unique_student_records_all.csv"
+DEFAULT_CSV_FILE = "data/student_credentials_all_9.csv"
 # Optional first CLI argument overrides the CSV, so one script can run per CSV in parallel.
 CSV_FILE = os.path.abspath(sys.argv[1] if len(sys.argv) > 1 else DEFAULT_CSV_FILE)
 BATCH_SIZE = 3
@@ -96,28 +96,24 @@ LOGIN_URL = "https://en.khanacademy.org/login"
 
 # Quiz URLs
 QUIZ_URLS = [
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:reaction-of-acids-and-bases/e/identifying-the-gas-released",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:chemical-properties-of-acids-and-bases/quiz/x5d08d26681869997:acids-bases-and-salts-quiz-1",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:reaction-of-acids-and-bases/e/detection-of-gases",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:reaction-of-acids-and-bases/e/identify-the-salt-formed",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:reaction-of-acids-and-bases/e/reactions-of-acids-and-bases",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:reaction-of-acids-and-bases/e/metal-oxide-and-non-metal-oxide",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:reaction-of-acids-and-bases/e/overview-reactions-of-acids-and-bases",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:reaction-of-acids-and-bases/quiz/x5d08d26681869997:acids-bases-and-salts-quiz-2",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:common-features-of-acid-and-base/e/common-properties-of-acids-and-bases-importance-of-ph",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:strength-of-acid-and-base/e/electrolytes-and-non-electrolytes",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:strength-of-acid-and-base/e/acids-and-bases",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:strength-of-acid-and-base/e/effect-of-dilution-of-acids-and-bases",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:strength-of-acid-and-base/e/ph-and-strength",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:strength-of-acid-and-base/e/ph-and-ph-scale",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:strength-of-acid-and-base/e/ph--concentration",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:salts-and-chemicals-from-common-salt/e/the-ph-of-salts",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:salts-and-chemicals-from-common-salt/e/more-about-salts",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:salts-and-chemicals-from-common-salt/e/water-of-crystallization",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:salts-and-chemicals-from-common-salt/e/uses-of-common-salts",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:salts-and-chemicals-from-common-salt/e/more-about-salts-water-of-crystallisation-uses-of-chemicals",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:salts-and-chemicals-from-common-salt/quiz/x5d08d26681869997:acids-bases-and-salts-quiz-4",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:salts-and-chemicals-from-common-salt/test/x5d08d26681869997:acids-bases-and-salts-unit-test"
+    "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:is-matter-around-us-pure/x699e14d392a80aeb:mixtures-and-solution/e/concentration-of-a-solution",
+    "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:is-matter-around-us-pure/x699e14d392a80aeb:solution-suspensions-and-colloids/e/differentiating-solution-suspension-and-colloids",
+    "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:is-matter-around-us-pure/x699e14d392a80aeb:methods-of-separation/e/methods-to-separate-the-compounds-of-a-mixture",
+    "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:is-matter-around-us-pure/x699e14d392a80aeb:methods-of-separation/quiz/x699e14d392a80aeb:is-matter-around-us-pure-quiz-2",
+    "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:is-matter-around-us-pure/x699e14d392a80aeb:difference-between-pure-substances-and-mixtures/e/pure-substances-and-mixtures",
+    "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:is-matter-around-us-pure/x699e14d392a80aeb:difference-between-pure-substances-and-mixtures/test/x699e14d392a80aeb:is-matter-around-us-pure-unit-test"
+
+
+    "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:atoms-and-molecules/x699e14d392a80aeb:law-of-chemical-combinations/e/laws-of-chemical-combination",
+    "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:atoms-and-molecules/x699e14d392a80aeb:molecules-and-ions/e/naming-ionic-compounds",
+    "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:atoms-and-molecules/x699e14d392a80aeb:molecules-and-ions/e/find-the-formula-for-ionic-compounds",
+    "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:atoms-and-molecules/x699e14d392a80aeb:molecules-and-ions/e/predicting-the-formula-of-the-given-ionic-compound",
+    "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:atoms-and-molecules/x699e14d392a80aeb:molecules-and-ions/e/predict-charges-on-monatomic-ions",
+    "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:atoms-and-molecules/x699e14d392a80aeb:molecules-and-ions/e/calculating-molecular-weight",
+    "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:atoms-and-molecules/x699e14d392a80aeb:molecules-and-ions/e/converting-moles-and-mass",
+    "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:atoms-and-molecules/x699e14d392a80aeb:molecules-and-ions/quiz/x699e14d392a80aeb:atoms-and-molecules-quiz-2",
+    "https://www.khanacademy.org/science/up-class-9th-science/x699e14d392a80aeb:atoms-and-molecules/x699e14d392a80aeb:molecules-and-ions/test/x699e14d392a80aeb:atoms-and-molecules-unit-test"
+
 ]
 
 

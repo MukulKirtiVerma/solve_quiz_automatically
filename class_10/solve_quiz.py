@@ -82,7 +82,7 @@ from PIL import Image
 # CONFIGURATION
 # ============================================================
 
-DEFAULT_CSV_FILE = "data/student_credentials_all_9.csv"
+DEFAULT_CSV_FILE = "/Users/mukulkirtiverma/PycharmProjects/solve_quiz_automatically/class_10/data/unique_student_records_all.csv"
 # Optional first CLI argument overrides the CSV, so one script can run per CSV in parallel.
 CSV_FILE = os.path.abspath(sys.argv[1] if len(sys.argv) > 1 else DEFAULT_CSV_FILE)
 BATCH_SIZE = 3
@@ -118,6 +118,26 @@ QUIZ_URLS = [
     "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:salts-and-chemicals-from-common-salt/e/more-about-salts-water-of-crystallisation-uses-of-chemicals",
     "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:salts-and-chemicals-from-common-salt/quiz/x5d08d26681869997:acids-bases-and-salts-quiz-4",
     "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:salts-and-chemicals-from-common-salt/test/x5d08d26681869997:acids-bases-and-salts-unit-test"
+    # unit3
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:physical-properties-of-metals-and-nonmetals/e/identify-the-property-of-a-metal",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:physical-properties-of-metals-and-nonmetals/e/identify-a-metal-with-an-exceptional-property",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:chemical-properties-of-metals/e/metals-reacting-with-air-and-water",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:chemical-properties-of-metals/e/chemical-properties-of-metals",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:chemical-properties-of-metals/e/metal-oxide-and-non-metal-oxide",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:chemical-properties-of-metals/e/acidic-basic-and-amphoteric-oxides",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:reactivity-series/e/reactivity-series",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:reactivity-series/quiz/x5d08d26681869997:metals-and-non-metals-quiz-1",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:metals-reaction-with-non-metals/e/identify-ions-present-in-ionic-compounds",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:metals-reaction-with-non-metals/e/formation-of-ionic-compounds",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:metals-reaction-with-non-metals/quiz/x5d08d26681869997:metals-and-non-metals-quiz-2",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:corrosion/e/corrosion",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:corrosion/e/metals-making-up-an-alloy",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:corrosion/quiz/x5d08d26681869997:metals-and-non-metals-quiz-3",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:occurrence-of-metals/e/roasting-and-calcination",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:occurrence-of-metals/e/reduction-of-metal-oxide",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:occurrence-of-metals/test/x5d08d26681869997:metals-and-non-metals-unit-test"
+
+
 ]
 
 

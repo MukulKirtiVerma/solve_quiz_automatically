@@ -57,12 +57,12 @@ from webdriver_manager.chrome import ChromeDriverManager
 # CONFIGURATION — UPDATE THESE
 # ────────────────────────────────
 
-DEFAULT_CSV_FILE = "/Users/mukulkirtiverma/PycharmProjects/solve_quiz_automatically/class_10/data/unique_student_records_all.csv"
+DEFAULT_CSV_FILE = "data/unique_student_records_all.csv"
 # Optional first CLI argument overrides the CSV, so one script can run per CSV in parallel.
 CSV_FILE = os.path.abspath(sys.argv[1] if len(sys.argv) > 1 else DEFAULT_CSV_FILE)
 # True = run Chrome without a visible window, False = show the browser.
 HEADLESS = True
-EXTENSION_PATH = "/Users/mukulkirtiverma/PycharmProjects/solve_quiz_automatically/ka-autoplay-2x"
+EXTENSION_PATH = "ka-autoplay-2x"
 BATCH_SIZE = 1
 WAIT_MINUTES = 9
 
@@ -74,25 +74,15 @@ VIDEO_WATCHED_PERCENT = 90
 LOGIN_URL = "https://en.khanacademy.org/login"
 
 VIDEO_URLS = [
-    "https://en.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:chemical-reactions-and-equations/x5d08d26681869997:types-of-chemical-equations/v/intro-to-chemical-reactions",
-    "https://en.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:chemical-reactions-and-equations/x5d08d26681869997:types-of-chemical-equations/v/balancing-chemical-equation-with-substitution",
-    "https://en.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:chemical-reactions-and-equations/x5d08d26681869997:combination-and-decomposition-reactions/v/combination-and-decomposition-reaction-chemical-reactions-and-equations-chemistry-khan-academy",
-    "https://en.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:chemical-reactions-and-equations/x5d08d26681869997:endothermic-and-exothermic-reactions/v/exothermic-and-endothermic-reactions-chemical-reactions-chemistry-khan-academy",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:physical-properties-of-metals-and-nonmetals/v/intro-to-physical-properties-of-metals-metals-and-non-metals-chemistry-khan-academy",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:corrosion/v/rusting-of-iron",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:chemical-properties-of-metals/v/reaction-of-magnesium-with-warm-water",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:chemical-properties-of-metals/v/metals-reacting-with-water-metals-and-non-metals-chemistry-khan-academy",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:chemical-properties-of-metals/v/reaction-of-metals-with-oxygen",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:chemical-properties-of-metals/v/reaction-of-metals-with-acids",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:chemical-properties-of-metals/v/nature-of-metal-oxides-metals-and-non-metals-chemistry-khan-academy"
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:chemical-properties-of-metals/v/nature-of-metal-oxides-metals-and-non-metals-chemistry-khan-academy"
 
-]
-
-VIDEO_URLS = [
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:chemical-properties-of-acids-and-bases/v/acids-bases-introduction",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:chemical-properties-of-acids-and-bases/v/litmus-solution-natural-indicator-acids-bases-and-salts-chemistry-khan-academy",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:reaction-of-acids-and-bases/v/reaction-of-acids-bases",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:reaction-of-acids-and-bases/v/metal-and-non-metal-oxides-reacting-with-acids-and-bases-chemistry-khan-academy",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:common-features-of-acid-and-base/v/arrhenius-acids-and-bases",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:salts-and-chemicals-from-common-salt/v/given-salt-find-acid-and-base-chemistry-khan-academy",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:salts-and-chemicals-from-common-salt/v/identify-salts-as-neutral-acidic-or-basic-chemistry-khan-academy",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:salts-and-chemicals-from-common-salt/v/predict-the-nature-of-salts-acidic-basic-or-neutral",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:salts-and-chemicals-from-common-salt/v/bleaching-powder-acids-bases-and-salts-chemistry-khan-academy",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:salts-and-chemicals-from-common-salt/v/baking-soda-acids-bases-and-salts-chemistry-khan-academy",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:salts-and-chemicals-from-common-salt/v/washing-soda"
 ]
 
 
