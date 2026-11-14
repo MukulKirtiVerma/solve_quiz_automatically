@@ -1598,7 +1598,7 @@ def create_driver(profile_dir):
 
     options.add_argument(f"--user-data-dir={profile_dir}")
     options.add_argument("--no-sandbox")
-    # options.add_argument("--headless")
+    options.add_argument("--headless")
     options.add_argument("--disable-dev-shm-usage")
     options.add_argument("--disable-gpu")
     options.add_argument("--window-size=1400,900")

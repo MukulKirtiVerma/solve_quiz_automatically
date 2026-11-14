@@ -85,7 +85,7 @@ from PIL import Image
 DEFAULT_CSV_FILE = "/Users/mukulkirtiverma/PycharmProjects/solve_quiz_automatically/class_10/data/unique_student_records_all.csv"
 # Optional first CLI argument overrides the CSV, so one script can run per CSV in parallel.
 CSV_FILE = os.path.abspath(sys.argv[1] if len(sys.argv) > 1 else DEFAULT_CSV_FILE)
-BATCH_SIZE = 1
+BATCH_SIZE = 3
 
 # Skip a quiz when Khan Academy already shows it as more than this % complete.
 SKIP_QUIZ_IF_COMPLETION_ABOVE = 80
@@ -96,30 +96,24 @@ LOGIN_URL = "https://en.khanacademy.org/login"
 
 # Quiz URLs
 QUIZ_URLS = [
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:reaction-of-acids-and-bases/e/identifying-the-gas-released",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:chemical-properties-of-acids-and-bases/quiz/x5d08d26681869997:acids-bases-and-salts-quiz-1",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:reaction-of-acids-and-bases/e/detection-of-gases",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:reaction-of-acids-and-bases/e/identify-the-salt-formed",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:reaction-of-acids-and-bases/e/reactions-of-acids-and-bases",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:reaction-of-acids-and-bases/e/metal-oxide-and-non-metal-oxide",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:reaction-of-acids-and-bases/e/overview-reactions-of-acids-and-bases",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:reaction-of-acids-and-bases/quiz/x5d08d26681869997:acids-bases-and-salts-quiz-2",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:common-features-of-acid-and-base/e/common-properties-of-acids-and-bases-importance-of-ph",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:strength-of-acid-and-base/e/electrolytes-and-non-electrolytes",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:strength-of-acid-and-base/e/acids-and-bases",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:strength-of-acid-and-base/e/effect-of-dilution-of-acids-and-bases",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:strength-of-acid-and-base/e/ph-and-strength",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:strength-of-acid-and-base/e/ph-and-ph-scale",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:strength-of-acid-and-base/e/ph--concentration",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:salts-and-chemicals-from-common-salt/e/the-ph-of-salts",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:salts-and-chemicals-from-common-salt/e/more-about-salts",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:salts-and-chemicals-from-common-salt/e/water-of-crystallization",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:salts-and-chemicals-from-common-salt/e/uses-of-common-salts",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:salts-and-chemicals-from-common-salt/e/more-about-salts-water-of-crystallisation-uses-of-chemicals",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:salts-and-chemicals-from-common-salt/quiz/x5d08d26681869997:acids-bases-and-salts-quiz-4",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:salts-and-chemicals-from-common-salt/test/x5d08d26681869997:acids-bases-and-salts-unit-test"
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:physical-properties-of-metals-and-nonmetals/e/identify-the-property-of-a-metal",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:physical-properties-of-metals-and-nonmetals/e/identify-a-metal-with-an-exceptional-property",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:chemical-properties-of-metals/e/metals-reacting-with-air-and-water",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:chemical-properties-of-metals/e/chemical-properties-of-metals",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:chemical-properties-of-metals/e/metal-oxide-and-non-metal-oxide",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:chemical-properties-of-metals/e/acidic-basic-and-amphoteric-oxides",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:reactivity-series/e/reactivity-series",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:reactivity-series/quiz/x5d08d26681869997:metals-and-non-metals-quiz-1",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:metals-reaction-with-non-metals/e/identify-ions-present-in-ionic-compounds",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:metals-reaction-with-non-metals/e/formation-of-ionic-compounds",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:metals-reaction-with-non-metals/quiz/x5d08d26681869997:metals-and-non-metals-quiz-2",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:corrosion/e/corrosion",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:corrosion/e/metals-making-up-an-alloy",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:corrosion/quiz/x5d08d26681869997:metals-and-non-metals-quiz-3",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:occurrence-of-metals/e/roasting-and-calcination",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:occurrence-of-metals/e/reduction-of-metal-oxide",
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:occurrence-of-metals/test/x5d08d26681869997:metals-and-non-metals-unit-test"
 ]
-
 
 def make_csv_id(csv_path):
     """Stable id for a CSV: '<file stem>_<hash of its absolute path>'."""
@@ -144,6 +138,13 @@ OUTPUT_DIR = os.path.join(OUTPUT_ROOT, CSV_ID)
 CHECKPOINT_FILE = os.path.join(OUTPUT_DIR, "checkpoint.json")
 LEGACY_CHECKPOINT_FILE = os.path.join(OUTPUT_ROOT, "checkpoint.json")  # old shared format
 STUDENT_TIMEOUT = 600  # 10 minutes per student
+
+# Error handling, from smallest to largest step:
+#   a question that errors (or can't be solved) is skipped -> next question;
+#   this many failing questions in a row, or one that can't be skipped -> next quiz;
+#   this many quizzes in a row ending in errors, or a dead browser -> next student.
+MAX_QUESTION_ERRORS_IN_A_ROW = 2
+MAX_QUIZ_ERRORS_IN_A_ROW = 2
 
 # NVIDIA API Configuration
 INVOKE_URL = "https://integrate.api.nvidia.com/v1/chat/completions"
@@ -192,7 +193,7 @@ SCREENSHOT_DIR, PROGRESS_FILE = setup_output()
 #     "<username>": {
 #       "status": "processed" | "failed", "error": "", "updated_at": "...",
 #       "quizzes": {
-#         "<quiz_id>": {"status": "complete" | "skipped" | "incomplete",
+#         "<quiz_id>": {"status": "complete" | "skipped" | "incomplete" | "error",
 #                       "completion_at_start": 85, "url": "...", "updated_at": "..."}
 #       }
 #     }
@@ -205,6 +206,7 @@ STUDENT_FAILED = "failed"
 QUIZ_COMPLETE = "complete"
 QUIZ_SKIPPED = "skipped"  # already above SKIP_QUIZ_IF_COMPLETION_ABOVE on Khan Academy
 QUIZ_INCOMPLETE = "incomplete"
+QUIZ_ERROR = "error"  # abandoned because of errors; retried on the next run
 QUIZ_DONE_STATUSES = (QUIZ_COMPLETE, QUIZ_SKIPPED)
 
 
@@ -462,7 +464,7 @@ def call_nvidia_api(payload, headers, max_retries=6):
     raise RuntimeError("Maximum retries exceeded.")
 
 
-def get_ai_solution(driver, question_html, screenshot_b64, input_ids, previous_attempts=None):
+def get_ai_solution(driver, question_html, screenshot_b64, input_ids, previous_attempts=None, dropdowns=None):
     """Send question to NVIDIA API with enhanced prompt for better accuracy."""
     api_key = os.getenv("NVIDIA_API_KEY")
 
@@ -477,6 +479,25 @@ def get_ai_solution(driver, question_html, screenshot_b64, input_ids, previous_a
         if input_ids:
             input_ids_info = f"\nThe input fields on this page have these IDs in order:\n{', '.join(input_ids)}\n"
             input_ids_info += "Use these exact IDs in your response for each input field.\n"
+            input_ids_info += (
+                "If the answer is typed into these input boxes, answer with type 'balancing' and put each "
+                "value under its input id - even when it is not a balancing question "
+                "(e.g. 'how many water molecules...'). Do NOT use single_choice for input boxes.\n"
+            )
+
+        # Dropdown options are not in the question HTML (they only render when a
+        # dropdown is opened), so list them here.
+        dropdown_info = ""
+        if dropdowns:
+            dropdown_info = (
+                "\nThis question has DROPDOWNS, so answer with type 'dropdown' "
+                "(even if the options look like letters A, B, C...).\n"
+                "Dropdown 1 is the first dropdown in the question, Dropdown 2 the second, and so on. Options:\n"
+            )
+            for dropdown in dropdowns:
+                options = ", ".join(json.dumps(option, ensure_ascii=False) for option in dropdown["options"])
+                dropdown_info += f"Dropdown {dropdown['index']}: {options}\n"
+            dropdown_info += "Pick exactly one option for every dropdown, copying its text exactly as listed above.\n"
 
         # Add feedback if this is a retry after wrong answer
         feedback = ""
@@ -558,9 +579,10 @@ If all coefficients have a common factor, divide by it.
 
 ## QUESTION TYPE DETECTION:
 First, identify the question type:
-- **'balancing'**: Questions with input boxes for coefficients (numbers like 1, 2, 3)
+- **'balancing'**: Questions with input boxes to type into: coefficients, or any other number/value (e.g. how many water molecules)
 - **'single_choice'**: Questions with only ONE correct answer (radio buttons)
 - **'multiple_choice'**: Questions with MULTIPLE correct answers (checkboxes)
+- **'dropdown'**: Questions where answers are picked from dropdown menus (e.g. "Choose the solution")
 
 ## IMPORTANT RULES:
 1. Coefficients must be the smallest possible whole numbers
@@ -568,6 +590,7 @@ First, identify the question type:
 3. For balancing equations, use the EXACT input IDs provided
 4. For single_choice, provide ONLY ONE answer
 5. For multiple_choice, provide ALL correct answers
+6. For dropdown, give one selection per dropdown, with the option text copied exactly
 
 ## RESPONSE FORMAT:
 
@@ -596,7 +619,18 @@ First, identify the question type:
     "reasoning": "Brief explanation of why these are the correct answers"
 }}
 
+### For Dropdowns:
+{{
+    "type": "dropdown",
+    "selections": [
+        {{"dropdown": 1, "option": "EXACT_OPTION_TEXT"}},
+        {{"dropdown": 2, "option": "EXACT_OPTION_TEXT"}}
+    ],
+    "reasoning": "Brief explanation of each selection"
+}}
+
 {input_ids_info}
+{dropdown_info}
 {feedback}
 
 **Critical**
@@ -726,17 +760,68 @@ def click_button_by_text(driver, text, partial=False):
 
 
 def click_skip_button(driver):
-    """Click Skip button."""
-    return click_button_by_text(driver, "Skip")
+    """Click Skip, then confirm 'Yes, skip' in the 'Are you sure?' modal it opens."""
+    if not click_button_by_text(driver, "Skip"):
+        return False
+
+    def yes_skip_visible(d):
+        button = find_button_by_text(d, "Yes, skip")
+        return button is not None and button.is_displayed()
+
+    try:
+        WebDriverWait(driver, 3, ignored_exceptions=(StaleElementReferenceException,)).until(yes_skip_visible)
+    except TimeoutException:
+        return True  # no confirmation modal appeared
+    return click_button_by_text(driver, "Yes, skip")
 
 
 def click_lets_go(driver):
     """Click Let's go button if present."""
     return click_button_by_text(driver, "Let's go", partial=True) or click_button_by_text(driver, "Let’s go",
                                                                                           partial=True)
+def dismiss_bonus_modal(driver, wait_seconds=0):
+    """If the "You've earned a bonus question!" modal is open (waiting up to
+    wait_seconds for it), click its 'Keep going' button."""
+    def bonus_modal_button(d):
+        for dialog in d.find_elements(By.CSS_SELECTOR, '[role="dialog"]'):
+            if not dialog.is_displayed() or "bonus question" not in (dialog.text or "").lower():
+                continue
+            buttons = [b for b in dialog.find_elements(By.TAG_NAME, "button") if b.is_displayed()]
+            keep_going = [b for b in buttons if (b.text or "").strip().lower() == "keep going"]
+            close = [b for b in buttons if b.get_attribute("aria-label") == "Close modal"]
+            if keep_going or close:
+                return (keep_going or close)[0]
+        return False
+
+    try:
+        button = WebDriverWait(
+            driver, wait_seconds, poll_frequency=0.25, ignored_exceptions=(StaleElementReferenceException,)
+        ).until(bonus_modal_button)
+    except TimeoutException:
+        return False
+
+    try:
+        driver.execute_script("arguments[0].click();", button)
+        print("    🎁 Bonus question modal — clicked 'Keep going'")
+        time.sleep(1)
+        return True
+    except Exception as e:
+        print(f"    ⚠️ Could not close bonus question modal: {e}")
+        return False
+
+
 def click_next_question(driver):
-    """Click Next question button."""
-    return click_button_by_text(driver, "Next question", partial=True)
+    """Click Next question — or Bonus question, which Khan Academy shows instead
+    at the end when a question was missed; it opens one more question that is
+    then solved like any other. The "You've earned a bonus question!" modal
+    that comes with it is closed with 'Keep going'."""
+    dismiss_bonus_modal(driver)
+    if click_button_by_text(driver, "Next question", partial=True):
+        return True
+    if click_button_by_text(driver, "Bonus question", partial=True):
+        dismiss_bonus_modal(driver, wait_seconds=3)
+        return True
+    return False
 
 
 def click_hint(driver):
@@ -745,8 +830,33 @@ def click_hint(driver):
     return click_next_question(driver)
 
 
+def cancel_skip_modal_if_open(driver):
+    """If the 'Are you sure? Skipped questions will count as incorrect' modal is
+    open, click its Cancel button so the question can still be checked."""
+    try:
+        cancel_buttons = [
+            b for b in driver.find_elements(By.ID, "cancel-skip-question") if b.is_displayed()
+        ]
+        if not cancel_buttons:
+            return False
+
+        driver.execute_script("arguments[0].click();", cancel_buttons[0])
+        print("    ✅ Skip modal was open — clicked 'Cancel'")
+        try:
+            WebDriverWait(driver, 3, ignored_exceptions=(StaleElementReferenceException,)).until(
+                lambda d: not any(b.is_displayed() for b in d.find_elements(By.ID, "cancel-skip-question"))
+            )
+        except TimeoutException:
+            print("    ⚠️ Skip modal still visible after clicking 'Cancel'")
+        return True
+    except Exception as e:
+        print(f"    ⚠️ Could not close skip modal: {e}")
+        return False
+
+
 def click_check_button(driver):
     """Click Check or Check again button."""
+    cancel_skip_modal_if_open(driver)
     return click_button_by_text(driver, "Check") or click_button_by_text(driver, "Check again", partial=True)
 
 
@@ -778,11 +888,12 @@ def is_try_again_present(driver):
 
 def click_check_again(driver):
     """Click Check again button specifically."""
+    cancel_skip_modal_if_open(driver)
     return click_button_by_text(driver, "Check again", partial=True)
 
 def is_next_present(driver):
-    """Check if Next question button is present."""
-    return button_exists(driver, "Next question")
+    """Check if Next question (or Bonus question) button is present."""
+    return button_exists(driver, "Next question") or button_exists(driver, "Bonus question")
 
 
 def is_summary_present(driver):
@@ -895,6 +1006,135 @@ def click_choice_by_letter(driver, letter):
 
 
 # ============================================================
+# DROPDOWN QUESTIONS
+# ============================================================
+# Khan Academy dropdowns are <button role="combobox" aria-haspopup="listbox">.
+# Their options (<button role="option">) are only rendered while the dropdown is
+# open, in a popup outside the question HTML (found via aria-controls), so the
+# options have to be read by opening each dropdown and passed to the LLM.
+
+DROPDOWN_SELECTOR = 'button[role="combobox"][aria-haspopup="listbox"]'
+
+_DROPDOWN_OPTIONS_JS = """
+const listbox = document.getElementById(arguments[0]);
+if (!listbox) return [];
+return [...listbox.querySelectorAll('[role="option"]')].map(o => ({
+    text: (o.innerText || o.textContent || "").replace(/\\s+/g, " ").trim(),
+    disabled: o.getAttribute("aria-disabled") === "true",
+}));
+"""
+
+
+def _normalize_option_text(text):
+    return re.sub(r"\s+", " ", str(text or "")).strip().lower()
+
+
+def find_dropdowns(driver):
+    """Visible dropdowns of the current question, in page order."""
+    try:
+        panels = driver.find_elements(By.CSS_SELECTOR, '[data-testid="content-panel-wrapper"]')
+        root = panels[0] if panels else driver
+        return [d for d in root.find_elements(By.CSS_SELECTOR, DROPDOWN_SELECTOR) if d.is_displayed()]
+    except Exception as e:
+        print(f"    ⚠️ Error finding dropdowns: {e}")
+        return []
+
+
+def _open_dropdown(driver, dropdown, wait_seconds=3):
+    """Open a dropdown and return the id of its options popup (or None)."""
+    driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", dropdown)
+    time.sleep(0.3)
+    if dropdown.get_attribute("aria-expanded") != "true":
+        driver.execute_script("arguments[0].click();", dropdown)
+    listbox_id = dropdown.get_attribute("aria-controls")
+    try:
+        WebDriverWait(driver, wait_seconds).until(
+            lambda d: d.execute_script(_DROPDOWN_OPTIONS_JS, listbox_id)
+        )
+        return listbox_id
+    except TimeoutException:
+        return None
+
+
+def _close_dropdown(driver, dropdown):
+    if dropdown.get_attribute("aria-expanded") != "true":
+        return
+    try:
+        driver.switch_to.active_element.send_keys(Keys.ESCAPE)
+        time.sleep(0.3)
+    except Exception:
+        pass
+    if dropdown.get_attribute("aria-expanded") == "true":
+        driver.execute_script("arguments[0].click();", dropdown)  # toggles it closed
+        time.sleep(0.3)
+
+
+def get_dropdowns(driver):
+    """
+    Read every dropdown's options by opening it and closing it again.
+    Returns [{"index": 1, "options": ["A", "B", ...], "selected": "..."}, ...]
+    (the disabled placeholder such as 'Choose the solution' is left out).
+    """
+    dropdowns = []
+    for index, dropdown in enumerate(find_dropdowns(driver), start=1):
+        try:
+            listbox_id = _open_dropdown(driver, dropdown)
+            options = driver.execute_script(_DROPDOWN_OPTIONS_JS, listbox_id) if listbox_id else []
+            _close_dropdown(driver, dropdown)
+            dropdowns.append({
+                "index": index,
+                "options": [o["text"] for o in options if not o["disabled"] and o["text"]],
+                "selected": re.sub(r"\s+", " ", dropdown.text or "").strip(),
+            })
+        except Exception as e:
+            print(f"    ⚠️ Could not read dropdown {index}: {e}")
+    return dropdowns
+
+
+def select_dropdown_option(driver, dropdown_number, option_text):
+    """Open dropdown #dropdown_number (1-based) and pick the option matching option_text."""
+    dropdowns = find_dropdowns(driver)
+    try:
+        dropdown = dropdowns[int(dropdown_number) - 1]
+    except (ValueError, TypeError, IndexError):
+        print(f"    ⚠️ Dropdown {dropdown_number} not found ({len(dropdowns)} on page)")
+        return False
+
+    wanted = _normalize_option_text(option_text)
+    try:
+        listbox_id = _open_dropdown(driver, dropdown)
+        if not listbox_id:
+            print(f"    ⚠️ Dropdown {dropdown_number} did not open")
+            return False
+
+        options = [
+            o for o in driver.find_element(By.ID, listbox_id).find_elements(By.CSS_SELECTOR, '[role="option"]')
+            if o.get_attribute("aria-disabled") != "true"
+        ]
+        texts = [_normalize_option_text(o.text) for o in options]
+
+        # Exact text match first, then a unique partial match.
+        match = next((o for o, t in zip(options, texts) if t == wanted), None)
+        if match is None:
+            partial = [o for o, t in zip(options, texts) if wanted and (wanted in t or t in wanted)]
+            match = partial[0] if len(partial) == 1 else None
+
+        if match is None:
+            print(f"    ⚠️ Option '{option_text}' not in dropdown {dropdown_number}: {[o.text for o in options]}")
+            _close_dropdown(driver, dropdown)
+            return False
+
+        driver.execute_script("arguments[0].click();", match)
+        time.sleep(0.5)
+        _close_dropdown(driver, dropdown)
+        print(f"    ✅ Dropdown {dropdown_number}: selected '{option_text}'")
+        return True
+    except Exception as e:
+        print(f"    ⚠️ Could not select '{option_text}' in dropdown {dropdown_number}: {e}")
+        return False
+
+
+# ============================================================
 # PROCESS AI SOLUTION
 # ============================================================
 
@@ -904,6 +1144,18 @@ def process_ai_solution(driver, solution):
         return 'retry', None
 
     solution_type = solution.get('type', '')
+
+    # The LLM sometimes labels a typed answer as a choice ("choice": "2"). If the
+    # page has input boxes but no answer-choice buttons, type the value(s) instead.
+    if solution_type in ('single_choice', 'multiple_choice'):
+        values = [solution.get('choice')] if solution_type == 'single_choice' else solution.get('choices', [])
+        values = [v for v in values if v not in (None, "")]
+        has_choice_buttons = driver.find_elements(By.CSS_SELECTOR, 'button[aria-label^="(Choice "]')
+        if values and find_all_inputs(driver) and not has_choice_buttons:
+            print(f"    ↪️ Got '{solution_type}' but this question has input boxes — typing {values} instead")
+            solution = {**solution, 'type': 'balancing',
+                        'inputs': [{'id': f'input_{i}', 'value': v} for i, v in enumerate(values)]}
+            solution_type = 'balancing'
 
     if solution_type == 'balancing':
         inputs = solution.get('inputs', [])
@@ -970,6 +1222,33 @@ def process_ai_solution(driver, solution):
         if choice:
             click_choice_by_letter(driver, choice)
             time.sleep(1)
+
+        if not click_check_button(driver):
+            click_check_again(driver)
+        time.sleep(2)
+
+        if is_try_again_present(driver):
+            print("    ⚠️ Wrong answer! Clicking Try again and will retry...")
+            wrong_answer = solution
+            click_try_again(driver)
+            time.sleep(1)
+            return 'wrong', wrong_answer
+
+        if is_next_present(driver):
+            click_next_question(driver)
+            return 'next', None
+        elif is_summary_present(driver):
+            click_show_summary(driver)
+            return 'summary', None
+        return 'retry', None
+
+    elif solution_type == 'dropdown':
+        selections = solution.get('selections', [])
+        for selection in selections:
+            select_dropdown_option(driver, selection.get('dropdown'), selection.get('option'))
+            time.sleep(0.5)
+
+        time.sleep(1)
 
         if not click_check_button(driver):
             click_check_again(driver)
@@ -1105,6 +1384,54 @@ def get_quiz_completion(driver, url, wait_seconds=3):
 
 
 # ============================================================
+# ERROR RECOVERY
+# ============================================================
+
+def browser_alive(driver):
+    """False once the browser/driver has died (every call would fail)."""
+    try:
+        driver.current_url
+        return True
+    except Exception:
+        return False
+
+
+def _question_signature(driver):
+    """Fingerprint of the question area, to tell whether the page moved on."""
+    try:
+        panels = driver.find_elements(By.CSS_SELECTOR, '[data-testid="content-panel-wrapper"]')
+        text = panels[0].text if panels else driver.find_element(By.TAG_NAME, "body").text
+        return hashlib.md5(text.encode("utf-8")).hexdigest()
+    except Exception:
+        return None
+
+
+def move_past_question(driver):
+    """
+    Get off the current question: Skip it (confirming 'Yes, skip'), and if that
+    changes nothing, try Next question / Bonus question.
+    Returns True if the page actually moved on.
+    """
+    def moved(before):
+        after = _question_signature(driver)
+        return is_summary_present(driver) or (after is not None and after != before)
+
+    before = _question_signature(driver)
+    try:
+        dismiss_bonus_modal(driver)
+        click_skip_button(driver)
+        time.sleep(1)
+        if moved(before):
+            return True
+        click_next_question(driver)
+        time.sleep(1)
+        return moved(before)
+    except Exception as e:
+        print(f"    ⚠️ Could not move past question: {e}")
+        return False
+
+
+# ============================================================
 # PROCESS A SINGLE URL
 # ============================================================
 
@@ -1112,7 +1439,8 @@ def process_url(driver, username, url, student_name):
     """
     Process a single quiz URL using API.
     Returns (status, completion_at_start) where status is QUIZ_COMPLETE,
-    QUIZ_SKIPPED or QUIZ_INCOMPLETE.
+    QUIZ_SKIPPED, QUIZ_INCOMPLETE, or QUIZ_ERROR when it had to give up on the
+    quiz because questions kept failing (the caller then moves to the next quiz).
     """
     print(f"\n    🌐 Processing URL: {url}")
 
@@ -1137,80 +1465,63 @@ def process_url(driver, username, url, student_name):
 
     max_questions = 500
     question_count = 0
-    max_attempts_per_question = 5
+    max_attempts_per_question = 3  # not solved after this many attempts -> skip the question
+    question_errors_in_a_row = 0
 
     while question_count < max_questions:
         question_count += 1
         attempt_count = 0
         previous_attempts = []
         print(f"\n    📝 Question {question_count}")
-
-        if is_summary_present(driver):
-            print("    ✅ Quiz completed! (Show summary found)")
-            click_show_summary(driver)
-            log_progress(student_name, username, url, "QUIZ_COMPLETE", "All questions solved")
-            return QUIZ_COMPLETE, completion
-
         try:
-            next_buttons = driver.find_elements(By.CSS_SELECTOR, 'button[data-testid="exercise-next-question"]')
-            if next_buttons:
-                is_disabled = next_buttons[0].get_attribute('aria-disabled')
-                if is_disabled == 'true':
-                    print("    ✅ All questions completed! (Next button disabled)")
-                    if is_summary_present(driver):
-                        click_show_summary(driver)
-                    return QUIZ_COMPLETE, completion
-        except:
-            pass
+            if is_summary_present(driver):
+                print("    ✅ Quiz completed! (Show summary found)")
+                click_show_summary(driver)
+                log_progress(student_name, username, url, "QUIZ_COMPLETE", "All questions solved")
+                return QUIZ_COMPLETE, completion
 
-        while attempt_count < max_attempts_per_question:
-            attempt_count += 1
-            print(f"\n    🎯 Attempt {attempt_count}/{max_attempts_per_question}")
-            click_lets_go(driver)
-            click_hint(driver)
-            html_content, content_panel = get_content_panel_html(driver)
-            api_success = False
-            action_result = 'retry'
-            wrong_answer = None
+            try:
+                next_buttons = driver.find_elements(By.CSS_SELECTOR, 'button[data-testid="exercise-next-question"]')
+                if next_buttons:
+                    is_disabled = next_buttons[0].get_attribute('aria-disabled')
+                    if is_disabled == 'true':
+                        print("    ✅ All questions completed! (Next button disabled)")
+                        if is_summary_present(driver):
+                            click_show_summary(driver)
+                        return QUIZ_COMPLETE, completion
+            except:
+                pass
 
-            if html_content and content_panel:
-                screenshot_b64 = get_element_screenshot_b64(driver, content_panel)
-                if screenshot_b64:
-                    input_ids, _ = get_input_ids(driver)
-                    if input_ids:
-                        print(f"    📝 Input IDs found: {input_ids}")
-
-                    solution = get_ai_solution(driver, html_content, screenshot_b64, input_ids, previous_attempts)
-                    if solution:
-                        action_result, wrong_answer = process_ai_solution(driver, solution)
-                        if action_result in ['next', 'summary']:
-                            print(f"    ✅ API solution applied successfully (action: {action_result})")
-                            api_success = True
-                            if action_result == 'summary':
-                                return QUIZ_COMPLETE, completion
-                            break
-                        elif action_result == 'wrong':
-                            if wrong_answer:
-                                previous_attempts.append(wrong_answer)
-                                print(f"    📝 Recorded wrong attempt #{len(previous_attempts)}")
-                            continue
-
-            if not api_success and action_result != 'wrong':
-                print(f"    ⚠️ API could not solve, waiting 3 seconds and retrying...")
-                time.sleep(3)
+            solved = False
+            while attempt_count < max_attempts_per_question:
+                attempt_count += 1
+                print(f"\n    🎯 Attempt {attempt_count}/{max_attempts_per_question}")
+                click_lets_go(driver)
+                click_hint(driver)
+                html_content, content_panel = get_content_panel_html(driver)
+                api_success = False
+                action_result = 'retry'
+                wrong_answer = None
 
                 if html_content and content_panel:
                     screenshot_b64 = get_element_screenshot_b64(driver, content_panel)
                     if screenshot_b64:
                         input_ids, _ = get_input_ids(driver)
+                        if input_ids:
+                            print(f"    📝 Input IDs found: {input_ids}")
+                        dropdowns = get_dropdowns(driver)
+                        if dropdowns:
+                            print(f"    🔽 Dropdowns found: {dropdowns}")
 
-                        solution = get_ai_solution(driver, html_content, screenshot_b64, input_ids, previous_attempts)
+                        solution = get_ai_solution(driver, html_content, screenshot_b64, input_ids, previous_attempts, dropdowns)
                         if solution:
                             action_result, wrong_answer = process_ai_solution(driver, solution)
                             if action_result in ['next', 'summary']:
-                                print(f"    ✅ API solution applied on retry (action: {action_result})")
+                                print(f"    ✅ API solution applied successfully (action: {action_result})")
+                                api_success = True
                                 if action_result == 'summary':
                                     return QUIZ_COMPLETE, completion
+                                solved = True
                                 break
                             elif action_result == 'wrong':
                                 if wrong_answer:
@@ -1218,10 +1529,47 @@ def process_url(driver, username, url, student_name):
                                     print(f"    📝 Recorded wrong attempt #{len(previous_attempts)}")
                                 continue
 
-            if attempt_count >= max_attempts_per_question:
-                print(f"    ❌ Max attempts ({max_attempts_per_question}) reached for this question")
-                click_skip_button(driver)
-                break
+                if not api_success and action_result != 'wrong':
+                    print(f"    ⚠️ API could not solve, waiting 3 seconds and retrying...")
+                    time.sleep(3)
+
+                    if html_content and content_panel:
+                        screenshot_b64 = get_element_screenshot_b64(driver, content_panel)
+                        if screenshot_b64:
+                            input_ids, _ = get_input_ids(driver)
+                            dropdowns = get_dropdowns(driver)
+
+                            solution = get_ai_solution(driver, html_content, screenshot_b64, input_ids, previous_attempts, dropdowns)
+                            if solution:
+                                action_result, wrong_answer = process_ai_solution(driver, solution)
+                                if action_result in ['next', 'summary']:
+                                    print(f"    ✅ API solution applied on retry (action: {action_result})")
+                                    if action_result == 'summary':
+                                        return QUIZ_COMPLETE, completion
+                                    solved = True
+                                    break
+                                elif action_result == 'wrong':
+                                    if wrong_answer:
+                                        previous_attempts.append(wrong_answer)
+                                        print(f"    📝 Recorded wrong attempt #{len(previous_attempts)}")
+                                    continue
+
+            # Checked after the loop (not inside it) so a wrong answer on the last
+            # attempt — which `continue`s straight out of the loop — is skipped too.
+            if not solved:
+                print(f"    ❌ Not solved in {max_attempts_per_question} attempts — skipping this question")
+                if not move_past_question(driver):
+                    raise RuntimeError("could not skip this question")
+        except Exception as e:  # (StudentTimeout is not an Exception, so the time limit passes through)
+            question_errors_in_a_row += 1
+            print(f"    ❌ Error on question {question_count}: {e}")
+            if question_errors_in_a_row >= MAX_QUESTION_ERRORS_IN_A_ROW or not move_past_question(driver):
+                print("    ⏭️ Cannot get past this question — moving on to the next quiz")
+                log_progress(student_name, username, url, "QUIZ_ERROR", f"Question {question_count}: {e}")
+                return QUIZ_ERROR, completion
+            print("    ⏭️ Skipped the failing question — moving on to the next question")
+        else:
+            question_errors_in_a_row = 0
 
         time.sleep(2)
 
@@ -1285,6 +1633,9 @@ def khan_login(driver, username, password):
     print("    🔐 Opening login page...")
     driver.get(LOGIN_URL)
     time.sleep(3)
+
+    # First page load for this student's fresh browser: accept the cookie banner.
+    accept_cookie_consent(driver, wait_seconds=3)
 
     try:
         email_field = None
@@ -1381,12 +1732,29 @@ def khan_login(driver, username, password):
 # COOKIE CONSENT & POPUPS
 # ============================================================
 
+COOKIE_ACCEPT_BUTTONS = (
+    (By.ID, "truste-consent-button"),        # TrustArc banner: "Accept All Cookies"
+    (By.ID, "onetrust-accept-btn-handler"),  # OneTrust banner
+)
+
+
 def accept_cookie_consent(driver, wait_seconds=5):
+    """Click the cookie banner's accept button (TrustArc or OneTrust) if one shows up."""
+    def visible_accept_button(d):
+        for by, selector in COOKIE_ACCEPT_BUTTONS:
+            for button in d.find_elements(by, selector):
+                if button.is_displayed() and button.is_enabled():
+                    return button
+        return False
+
     try:
-        button = WebDriverWait(driver, wait_seconds).until(
-            EC.element_to_be_clickable((By.ID, "onetrust-accept-btn-handler"))
-        )
-        button.click()
+        button = WebDriverWait(
+            driver, wait_seconds, ignored_exceptions=(StaleElementReferenceException,)
+        ).until(visible_accept_button)
+        try:
+            button.click()
+        except WebDriverException:
+            driver.execute_script("arguments[0].click();", button)
         print("    🍪 Cookie consent accepted")
         return True
     except TimeoutException:
@@ -1452,8 +1820,17 @@ def handle_intro_modal(driver):
 # TIMEOUT HANDLING
 # ============================================================
 
+class StudentTimeout(BaseException):
+    """Raised when a student exceeds STUDENT_TIMEOUT. It derives from
+    BaseException, not Exception, so the many `except Exception` blocks in the
+    helpers can't swallow it (a plain TimeoutError was being swallowed by e.g.
+    click_button_by_text, so the time limit silently never applied)."""
+
+
 def timeout_handler(signum, frame):
-    raise TimeoutError("Student processing timed out")
+    # Re-arm: if a bare `except:` somewhere still swallows this, it fires again shortly.
+    signal.alarm(5)
+    raise StudentTimeout(f"Student processing timed out after {STUDENT_TIMEOUT // 60} minutes")
 
 
 def with_timeout(func):
@@ -1462,16 +1839,12 @@ def with_timeout(func):
         signal.signal(signal.SIGALRM, timeout_handler)
         signal.alarm(STUDENT_TIMEOUT)
         try:
-            result = func(*args, **kwargs)
-            signal.alarm(0)
-            return result
-        except TimeoutError:
-            signal.alarm(0)
+            return func(*args, **kwargs)
+        except StudentTimeout:
             print(f"    ⏰ Student processing exceeded {STUDENT_TIMEOUT // 60} minutes")
             raise
-        except Exception as e:
+        finally:
             signal.alarm(0)
-            raise
 
     return wrapper
 
@@ -1518,6 +1891,7 @@ def process_student_with_timeout(student, batch_number, student_number):
         handle_intro_modal(driver)
 
         all_completed = True
+        quiz_errors_in_a_row = 0
         for url in QUIZ_URLS:
             quiz_id = quiz_id_from_url(url)
             print(f"\n{'=' * 60}")
@@ -1529,14 +1903,31 @@ def process_student_with_timeout(student, batch_number, student_number):
                 print(f"    ⏭️ Already {previous['status']} in checkpoint, skipping: {quiz_id}")
                 continue
 
-            quiz_status, completion_at_start = process_url(driver, username, url, name)
+            try:
+                quiz_status, completion_at_start = process_url(driver, username, url, name)
+            except Exception as e:  # (StudentTimeout is not an Exception, so the time limit passes through)
+                print(f"    ❌ Error in quiz {quiz_id}: {e}")
+                log_progress(name, username, url, "QUIZ_ERROR", str(e))
+                quiz_status, completion_at_start = QUIZ_ERROR, None
             mark_quiz(username, url, quiz_status, completion_at_start)
 
-            if quiz_status == QUIZ_INCOMPLETE:
+            if quiz_status == QUIZ_ERROR:
                 all_completed = False
-                print(f"    ⚠️ Quiz not completed: {url}")
+                quiz_errors_in_a_row += 1
+                if not browser_alive(driver):
+                    raise RuntimeError("Browser stopped responding — moving on to the next student")
+                if quiz_errors_in_a_row >= MAX_QUIZ_ERRORS_IN_A_ROW:
+                    raise RuntimeError(
+                        f"{quiz_errors_in_a_row} quizzes in a row ended with errors — moving on to the next student"
+                    )
+                print(f"    ⏭️ Quiz ended with errors — moving on to the next quiz")
             else:
-                print(f"    ✅ Quiz {quiz_status}: {url}")
+                quiz_errors_in_a_row = 0
+                if quiz_status == QUIZ_INCOMPLETE:
+                    all_completed = False
+                    print(f"    ⚠️ Quiz not completed: {url}")
+                else:
+                    print(f"    ✅ Quiz {quiz_status}: {url}")
 
             time.sleep(2)
 
@@ -1563,6 +1954,7 @@ def process_student_with_timeout(student, batch_number, student_number):
         return False
 
     finally:
+        signal.alarm(0)  # stop the (re-arming) time limit so it can't interrupt the cleanup
         if driver:
             try:
                 driver.quit()
@@ -1581,7 +1973,7 @@ def process_student(student, batch_number, student_number):
     """Wrapper for process_student_with_timeout."""
     try:
         return process_student_with_timeout(student, batch_number, student_number)
-    except TimeoutError:
+    except StudentTimeout:
         name = student["name"]
         username = student["username"]
         print(f"\n⏰ TIMEOUT: Student {name} took more than {STUDENT_TIMEOUT // 60} minutes")
