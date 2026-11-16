@@ -82,7 +82,7 @@ from PIL import Image
 # CONFIGURATION
 # ============================================================
 
-DEFAULT_CSV_FILE = "/Users/mukulkirtiverma/PycharmProjects/solve_quiz_automatically/class_10/data/unique_student_records_all.csv"
+DEFAULT_CSV_FILE = "data/unique_student_records_all.csv"
 # Optional first CLI argument overrides the CSV, so one script can run per CSV in parallel.
 CSV_FILE = os.path.abspath(sys.argv[1] if len(sys.argv) > 1 else DEFAULT_CSV_FILE)
 BATCH_SIZE = 3
