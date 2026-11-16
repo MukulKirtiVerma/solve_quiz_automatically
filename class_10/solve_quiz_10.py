@@ -31,6 +31,8 @@ from datetime import datetime
 import subprocess
 import signal
 from functools import wraps
+from contextlib import contextmanager
+import fcntl
 import re
 import io
 
@@ -85,7 +87,7 @@ from PIL import Image
 DEFAULT_CSV_FILE = "data/unique_student_records_all.csv"
 # Optional first CLI argument overrides the CSV, so one script can run per CSV in parallel.
 CSV_FILE = os.path.abspath(sys.argv[1] if len(sys.argv) > 1 else DEFAULT_CSV_FILE)
-BATCH_SIZE = 3
+BATCH_SIZE = 1
 
 # Skip a quiz when Khan Academy already shows it as more than this % complete.
 SKIP_QUIZ_IF_COMPLETION_ABOVE = 80
@@ -117,7 +119,7 @@ QUIZ_URLS = [
     "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:salts-and-chemicals-from-common-salt/e/uses-of-common-salts",
     "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:salts-and-chemicals-from-common-salt/e/more-about-salts-water-of-crystallisation-uses-of-chemicals",
     "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:salts-and-chemicals-from-common-salt/quiz/x5d08d26681869997:acids-bases-and-salts-quiz-4",
-    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:salts-and-chemicals-from-common-salt/test/x5d08d26681869997:acids-bases-and-salts-unit-test"
+    "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:acids-bases-and-salts/x5d08d26681869997:salts-and-chemicals-from-common-salt/test/x5d08d26681869997:acids-bases-and-salts-unit-test",
     # unit3
     "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:physical-properties-of-metals-and-nonmetals/e/identify-the-property-of-a-metal",
     "https://www.khanacademy.org/science/up-class-10th-science/x5d08d26681869997:metals-and-non-metals/x5d08d26681869997:physical-properties-of-metals-and-nonmetals/e/identify-a-metal-with-an-exceptional-property",
@@ -347,6 +349,134 @@ def import_legacy_checkpoint(students):
     imported = len(checkpoint["students"])
     if imported:
         print(f"📥 Imported {imported} processed student(s) from {LEGACY_CHECKPOINT_FILE}")
+
+
+# ============================================================
+# QUIZZES ALREADY DONE ON KHAN ACADEMY (shared by every run, CSV and machine)
+# ============================================================
+
+# ka_quiz_progress/completed_quizzes.json — every quiz Khan Academy has shown
+# above SKIP_QUIZ_IF_COMPLETION_ABOVE for a student (the quizzes skipped after
+# checking the web page, the 100% ones included), with that completion %:
+# {
+#   "updated_at": "...",
+#   "students": {
+#     "<username>": {
+#       "<quiz_id>": {"completion": 86, "url": "...", "recorded_at": "..."}
+#     }
+#   }
+# }
+# Unlike checkpoint.json it is keyed only by username + quiz id, not by CSV, so
+# it stays valid when the CSV is moved or renamed, or the project runs on another
+# machine (copy the file along). Quizzes listed here are skipped without opening
+# their page, and a student with every quiz listed is not even logged in.
+# Entries are compared with SKIP_QUIZ_IF_COMPLETION_ABOVE when read, so raising
+# that limit sends the entries below it back to the web check.
+# Delete a quiz's entry to make the script do that quiz again.
+
+COMPLETED_QUIZZES_FILE = os.path.join(OUTPUT_ROOT, "completed_quizzes.json")
+
+
+@contextmanager
+def _completed_quizzes_lock():
+    """One writer at a time: instances running other CSVs share this file."""
+    with open(f"{COMPLETED_QUIZZES_FILE}.lock", "a") as lock_file:
+        fcntl.flock(lock_file, fcntl.LOCK_EX)
+        yield  # closing the file releases the lock, also on an exception
+
+
+def _load_completed_quizzes():
+    try:
+        with open(COMPLETED_QUIZZES_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        return {"students": {}}
+    except json.JSONDecodeError:
+        backup = f"{COMPLETED_QUIZZES_FILE}.corrupt_{datetime.now():%Y%m%d_%H%M%S}"
+        try:
+            os.replace(COMPLETED_QUIZZES_FILE, backup)
+            print(f"⚠️ {COMPLETED_QUIZZES_FILE} unreadable, starting a fresh one (old file kept at {backup})")
+        except OSError:
+            pass
+        return {"students": {}}
+    data.setdefault("students", {})
+    return data
+
+
+def get_completed_quizzes(username):
+    """{quiz_id: completion %} for this student's recorded quizzes above SKIP_QUIZ_IF_COMPLETION_ABOVE."""
+    quizzes = _load_completed_quizzes()["students"].get(username, {})
+    return {
+        quiz_id: quiz.get("completion", 100)
+        for quiz_id, quiz in quizzes.items()
+        if quiz.get("completion", 100) > SKIP_QUIZ_IF_COMPLETION_ABOVE
+    }
+
+
+def record_completed_quizzes(username, quizzes, verbose=True):
+    """
+    Record quizzes ({quiz_id: (url, completion %)}) for `username`. A quiz that
+    is already recorded is only updated when its completion went up.
+    Returns how many entries were added or updated.
+    """
+    if not quizzes:
+        return 0
+    with _completed_quizzes_lock():
+        data = _load_completed_quizzes()
+        student = data["students"].setdefault(username, {})
+        changed = {
+            quiz_id: (url, completion)
+            for quiz_id, (url, completion) in quizzes.items()
+            if completion > student.get(quiz_id, {}).get("completion", -1)
+        }
+        if not changed:
+            return 0
+        for quiz_id, (url, completion) in changed.items():
+            student[quiz_id] = {"completion": completion, "url": url, "recorded_at": _now()}
+        data["updated_at"] = _now()
+        tmp_file = f"{COMPLETED_QUIZZES_FILE}.{os.getpid()}.tmp"
+        with open(tmp_file, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+        os.replace(tmp_file, COMPLETED_QUIZZES_FILE)  # atomic, like save_checkpoint
+    if verbose:
+        for quiz_id, (_, completion) in changed.items():
+            print(f"    💾 Saved to completed_quizzes.json ({completion}%): {quiz_id}")
+    return len(changed)
+
+
+def import_completed_from_checkpoints():
+    """
+    First run with completed_quizzes.json: carry over the quizzes earlier runs
+    already found above SKIP_QUIZ_IF_COMPLETION_ABOVE (every CSV's checkpoint.json).
+    """
+    imported = 0
+    for checkpoint_path in sorted(Path(OUTPUT_ROOT).glob("*/checkpoint.json")):
+        try:
+            with open(checkpoint_path, "r", encoding="utf-8") as f:
+                students = json.load(f).get("students", {})
+        except (OSError, json.JSONDecodeError):
+            continue
+        for username, student in students.items():
+            done = {
+                quiz_id: (quiz.get("url", ""), quiz["completion_at_start"])
+                for quiz_id, quiz in student.get("quizzes", {}).items()
+                if (quiz.get("completion_at_start") or 0) > SKIP_QUIZ_IF_COMPLETION_ABOVE
+            }
+            imported += record_completed_quizzes(username, done, verbose=False)
+    if imported:
+        print(f"📥 Imported {imported} quiz(zes) already above {SKIP_QUIZ_IF_COMPLETION_ABOVE}% from earlier checkpoints")
+
+
+def pending_quiz_urls(username):
+    """QUIZ_URLS still to do: not in completed_quizzes.json and not already done in this CSV's checkpoint."""
+    completed = get_completed_quizzes(username)
+    quizzes = load_checkpoint()["students"].get(username, {}).get("quizzes", {})
+    return [
+        url
+        for url in QUIZ_URLS
+        if quiz_id_from_url(url) not in completed
+        and quizzes.get(quiz_id_from_url(url), {}).get("status") not in QUIZ_DONE_STATUSES
+    ]
 
 
 # ============================================================
@@ -1337,7 +1467,8 @@ def get_content_panel_html(driver):
 # returns its status text. The sidebar shows the same status span for *every*
 # item in the lesson, so matching on the slug is what ties a % to this quiz.
 _QUIZ_LINK_STATUS_JS = """
-const [quizId, statusClass] = arguments;
+const [quizIds, statusClass] = arguments;
+const wanted = new Set(quizIds);
 const slugOf = (href) => {
     try {
         const path = decodeURIComponent(new URL(href, location.href).pathname).replace(/\\/+$/, "");
@@ -1358,10 +1489,12 @@ const textOf = (el) => {
 };
 const links = [];
 for (const a of document.querySelectorAll("a[href]")) {
-    if (slugOf(a.getAttribute("href")) !== quizId) continue;
+    const slug = slugOf(a.getAttribute("href"));
+    if (!wanted.has(slug)) continue;
     const status = a.querySelector("span." + statusClass);
     const ariaCurrent = a.getAttribute("aria-current");
     links.push({
+        slug: slug,
         current: !!ariaCurrent && ariaCurrent !== "false",
         status: status ? textOf(status) : "",
         text: textOf(a),
@@ -1383,6 +1516,17 @@ def _parse_completion(text):
     return None
 
 
+def _completion_from_links(links):
+    """First readable % among one quiz's links, or None."""
+    # The highlighted (aria-current) sidebar entry is the most reliable one.
+    for link in sorted(links, key=lambda link: not link.get("current")):
+        for text in (link.get("status"), link.get("text")):
+            completion = _parse_completion(text)
+            if completion is not None:
+                return completion
+    return None
+
+
 def get_quiz_completion(driver, url, wait_seconds=3):
     """
     Completion % that the course sidebar shows for the quiz at `url`.
@@ -1391,22 +1535,40 @@ def get_quiz_completion(driver, url, wait_seconds=3):
     quiz_id = quiz_id_from_url(url)
     try:
         links = WebDriverWait(driver, wait_seconds).until(
-            lambda d: d.execute_script(_QUIZ_LINK_STATUS_JS, quiz_id, COMPLETION_STATUS_CLASS)
+            lambda d: d.execute_script(_QUIZ_LINK_STATUS_JS, [quiz_id], COMPLETION_STATUS_CLASS)
         )
     except WebDriverException:
         print(f"    ℹ️ No sidebar link found for '{quiz_id}', treating completion as 0%")
         return 0
 
-    # The highlighted (aria-current) sidebar entry is the most reliable one.
-    links.sort(key=lambda link: not link.get("current"))
-    for link in links:
-        for text in (link.get("status"), link.get("text")):
-            completion = _parse_completion(text)
-            if completion is not None:
-                return completion
+    completion = _completion_from_links(links)
+    if completion is None:
+        print(f"    ℹ️ No completion status shown for '{quiz_id}', treating completion as 0%")
+        return 0
+    return completion
 
-    print(f"    ℹ️ No completion status shown for '{quiz_id}', treating completion as 0%")
-    return 0
+
+def record_completed_from_sidebar(driver, username):
+    """
+    Save to completed_quizzes.json every quiz of QUIZ_URLS that the page's
+    sidebar shows above SKIP_QUIZ_IF_COMPLETION_ABOVE: the current one and the
+    rest of its lesson, so later quizzes (and later runs) skip them without
+    opening their page.
+    """
+    urls_by_id = {quiz_id_from_url(url): url for url in QUIZ_URLS}
+    try:
+        links = driver.execute_script(_QUIZ_LINK_STATUS_JS, list(urls_by_id), COMPLETION_STATUS_CLASS) or []
+        links_by_id = {}
+        for link in links:
+            links_by_id.setdefault(link.get("slug"), []).append(link)
+        done = {}
+        for quiz_id, quiz_links in links_by_id.items():
+            completion = _completion_from_links(quiz_links)
+            if quiz_id in urls_by_id and completion is not None and completion > SKIP_QUIZ_IF_COMPLETION_ABOVE:
+                done[quiz_id] = (urls_by_id[quiz_id], completion)
+        record_completed_quizzes(username, done)
+    except Exception as e:  # bookkeeping only: never let it break the quiz
+        print(f"    ⚠️ Could not save completed quizzes from the sidebar: {e}")
 
 
 # ============================================================
@@ -1475,8 +1637,10 @@ def process_url(driver, username, url, student_name):
 
     completion = get_quiz_completion(driver, url)
     print(f"    📊 Current completion: {completion}%")
+    record_completed_from_sidebar(driver, username)  # this quiz and the rest of its lesson
     if completion > SKIP_QUIZ_IF_COMPLETION_ABOVE:
         print(f"    ⏭️ Skipping quiz, already above {SKIP_QUIZ_IF_COMPLETION_ABOVE}%")
+        record_completed_quizzes(username, {quiz_id_from_url(url): (url, completion)})
         log_progress(student_name, username, url, "QUIZ_SKIPPED", f"Already {completion}% complete")
         return QUIZ_SKIPPED, completion
 
@@ -1892,6 +2056,12 @@ def process_student_with_timeout(student, batch_number, student_number):
     print(f"📧 USERNAME: {username}")
     print("━" * 70)
 
+    if not pending_quiz_urls(username):
+        print(f"    💯 Every quiz is already above {SKIP_QUIZ_IF_COMPLETION_ABOVE}% or done — no need to log in")
+        log_progress(name, username, "", "STUDENT_COMPLETE", "All quizzes already completed or done")
+        mark_student_processed(username)
+        return True
+
     # Unique per CSV + student: parallel instances must never share (or delete)
     # each other's Chrome profile directory.
     profile_dir = os.path.join(
@@ -1920,6 +2090,11 @@ def process_student_with_timeout(student, batch_number, student_number):
         quiz_errors_in_a_row = 0
         for url in QUIZ_URLS:
             quiz_id = quiz_id_from_url(url)
+            completed = get_completed_quizzes(username)
+            if quiz_id in completed:
+                print(f"\n    💯 Already {completed[quiz_id]}% in completed_quizzes.json, skipping: {quiz_id}")
+                continue
+
             print(f"\n{'=' * 60}")
             print(f"📚 STARTING QUIZ: {quiz_id}")
             print(f"{'=' * 60}")
@@ -2113,9 +2288,12 @@ def main():
     print(f"📋 Loaded {len(students)} student(s) from CSV: {CSV_FILE}")
     print(f"🆔 CSV id: {CSV_ID}")
     print(f"📊 Checkpoint file: {CHECKPOINT_FILE}")
+    print(f"💯 Completed quizzes file: {COMPLETED_QUIZZES_FILE}")
 
     if not os.path.exists(CHECKPOINT_FILE):
         import_legacy_checkpoint(students)
+    if not os.path.exists(COMPLETED_QUIZZES_FILE):
+        import_completed_from_checkpoints()
 
     checkpoint = load_checkpoint()
     processed = set(usernames_with_status(checkpoint, STUDENT_PROCESSED))
@@ -2164,6 +2342,7 @@ def main():
         print(f"📸 Screenshots: {SCREENSHOT_DIR}")
         print(f"📝 Progress CSV: {PROGRESS_FILE}")
         print(f"📊 Checkpoint: {CHECKPOINT_FILE}")
+        print(f"💯 Completed quizzes: {COMPLETED_QUIZZES_FILE}")
         print("=" * 70)
 
 
