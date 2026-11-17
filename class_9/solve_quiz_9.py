@@ -141,7 +141,10 @@ OUTPUT_ROOT = "ka_quiz_progress"
 OUTPUT_DIR = os.path.join(OUTPUT_ROOT, CSV_ID)
 CHECKPOINT_FILE = os.path.join(OUTPUT_DIR, "checkpoint.json")
 LEGACY_CHECKPOINT_FILE = os.path.join(OUTPUT_ROOT, "checkpoint.json")  # old shared format
-STUDENT_TIMEOUT = 600  # 10 minutes per student
+# A student is given up on after this long WITHOUT PROGRESS: every question
+# answered or skipped and every quiz finished starts the clock again, so a
+# student who is still getting through questions is never cut off.
+STUDENT_TIMEOUT = 600  # 10 minutes without progress
 
 # Error handling, from smallest to largest step:
 #   a question that errors (or can't be solved) is skipped -> next question;
@@ -1655,6 +1658,7 @@ def process_url(driver, username, url, student_name):
                         print("    ✅ All questions completed! (Next button disabled)")
                         if is_summary_present(driver):
                             click_show_summary(driver)
+                        log_progress(student_name, username, url, "QUIZ_COMPLETE", "All questions completed")
                         return QUIZ_COMPLETE, completion
             except:
                 pass
@@ -1688,6 +1692,7 @@ def process_url(driver, username, url, student_name):
                                 # print(f"    ✅ API solution applied successfully (action: {action_result})")
                                 api_success = True
                                 if action_result == 'summary':
+                                    log_progress(student_name, username, url, "QUIZ_COMPLETE", "All questions solved")
                                     return QUIZ_COMPLETE, completion
                                 solved = True
                                 break
@@ -1713,6 +1718,7 @@ def process_url(driver, username, url, student_name):
                                 if action_result in ['next', 'summary']:
                                     print(f"    ✅ API solution applied on retry (action: {action_result})")
                                     if action_result == 'summary':
+                                        log_progress(student_name, username, url, "QUIZ_COMPLETE", "All questions solved")
                                         return QUIZ_COMPLETE, completion
                                     solved = True
                                     break
@@ -1738,6 +1744,7 @@ def process_url(driver, username, url, student_name):
             print("    ⏭️ Skipped the failing question — moving on to the next question")
         else:
             question_errors_in_a_row = 0
+            reset_student_timer()  # got past this question: that's progress
 
         time.sleep(2)
 
@@ -1783,12 +1790,14 @@ def create_driver(profile_dir):
     print("    🌐 Starting Chrome...")
 
     try:
+        # Selenium's built-in driver manager first: on a server without Chrome it
+        # downloads a matching Chrome itself, where webdriver_manager can only fail.
+        driver = webdriver.Chrome(options=options)
+    except Exception as e:
+        print(f"    ⚠️ Selenium default driver failed: {str(e).splitlines()[0]}")
+        print("    Trying webdriver_manager...")
         service = Service(ChromeDriverManager().install())
         driver = webdriver.Chrome(service=service, options=options)
-    except Exception as e:
-        print(f"    ⚠️ Driver manager failed: {e}")
-        print("    Trying Selenium default driver...")
-        driver = webdriver.Chrome(options=options)
 
     return driver
 
@@ -1998,7 +2007,13 @@ class StudentTimeout(BaseException):
 def timeout_handler(signum, frame):
     # Re-arm: if a bare `except:` somewhere still swallows this, it fires again shortly.
     signal.alarm(5)
-    raise StudentTimeout(f"Student processing timed out after {STUDENT_TIMEOUT // 60} minutes")
+    raise StudentTimeout(f"No progress for {STUDENT_TIMEOUT // 60} minutes")
+
+
+def reset_student_timer():
+    """Progress was made: give the current student a fresh STUDENT_TIMEOUT."""
+    if signal.getitimer(signal.ITIMER_REAL)[0] > 0:  # only while a student is being timed
+        signal.alarm(STUDENT_TIMEOUT)
 
 
 def with_timeout(func):
@@ -2009,7 +2024,7 @@ def with_timeout(func):
         try:
             return func(*args, **kwargs)
         except StudentTimeout:
-            print(f"    ⏰ Student processing exceeded {STUDENT_TIMEOUT // 60} minutes")
+            print(f"    ⏰ Student made no progress for {STUDENT_TIMEOUT // 60} minutes")
             raise
         finally:
             signal.alarm(0)
@@ -2102,6 +2117,7 @@ def process_student_with_timeout(student, batch_number, student_number):
                 print(f"    ⏭️ Quiz ended with errors — moving on to the next quiz")
             else:
                 quiz_errors_in_a_row = 0
+                reset_student_timer()  # finished (or skipped) a quiz: that's progress
                 if quiz_status == QUIZ_INCOMPLETE:
                     all_completed = False
                     print(f"    ⚠️ Quiz not completed: {url}")
@@ -2155,10 +2171,10 @@ def process_student(student, batch_number, student_number):
     except StudentTimeout:
         name = student["name"]
         username = student["username"]
-        print(f"\n⏰ TIMEOUT: Student {name} took more than {STUDENT_TIMEOUT // 60} minutes")
+        print(f"\n⏰ TIMEOUT: Student {name} made no progress for {STUDENT_TIMEOUT // 60} minutes")
 
-        log_progress(name, username, "", "TIMEOUT", f"Exceeded {STUDENT_TIMEOUT // 60} minute limit")
-        mark_student_failed(username, f"Timeout after {STUDENT_TIMEOUT // 60} minutes")
+        log_progress(name, username, "", "TIMEOUT", f"No progress for {STUDENT_TIMEOUT // 60} minutes")
+        mark_student_failed(username, f"Timeout: no progress for {STUDENT_TIMEOUT // 60} minutes")
         return False
     except Exception as e:
         name = student["name"]
@@ -2242,7 +2258,7 @@ def main():
     print("=" * 70)
     print("KHAN ACADEMY QUIZ AUTO-SOLVER WITH NVIDIA API")
     print("=" * 70)
-    print(f"⏰ Student timeout: {STUDENT_TIMEOUT // 60} minutes")
+    print(f"⏰ Student timeout: {STUDENT_TIMEOUT // 60} minutes without progress")
     print(f"🤖 Model: {MODEL}")
     print(f"🔗 URLs to process: {len(QUIZ_URLS)}")
 
